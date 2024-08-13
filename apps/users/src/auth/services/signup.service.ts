@@ -9,10 +9,13 @@ import {
   TransactionalPrismaClient,
   UserAgentDetails,
 } from '@app/common';
+import { TokenType } from '@app/common/grpc/auth-users';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Device, PasswordHistory, User } from '@prisma/client';
+import { VERIFICATION_REDIS_PROVIDER } from '../../redis/verification-redis.module';
 import { SignupDto } from '../dto/signup.dto';
-import { VERIFICATION_REDIS_PROVIDER } from '../redis/verification-redis.module';
+import { VerificationService } from '../verification/verification.service';
+import { TokenService } from './token.service';
 
 @Injectable()
 export class SignupService {
@@ -22,6 +25,8 @@ export class SignupService {
     private readonly prisma: PrismaService,
     @Inject(VERIFICATION_REDIS_PROVIDER)
     private readonly verificationRedis: RedisService,
+    private readonly verification: VerificationService,
+    private readonly token: TokenService,
   ) {}
 
   async signup(
@@ -31,7 +36,7 @@ export class SignupService {
     const existingUser = await this.getExistingUser(signupDto);
 
     const result = this.verificationRedis.transaction(async () => {
-      await this.prisma.$transaction(async (prisma) => {
+      return await this.prisma.$transaction(async (prisma) => {
         const user = await this.upsertUser(prisma, signupDto);
 
         const device = await this.upsertDevice(prisma, userAgentDetails, user);
@@ -43,6 +48,19 @@ export class SignupService {
           device,
           signupDto,
         );
+
+        const activationCode = await this.verification.createVerificationCode(
+          user.id,
+          device.id,
+        );
+
+        const tokenPair = await this.token.generateTokenPair(
+          user.id,
+          device.userAgentId,
+          TokenType.ActivateUser,
+        );
+
+        return tokenPair;
       });
     });
 

@@ -1,7 +1,7 @@
 export class TokenPairResponseDto {
   accessToken: string;
 
-  expiresAt: number;
+  expiresIn: number;
 
   refreshToken?: string;
 }

@@ -4,7 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RedisOptions } from 'ioredis';
 import * as Joi from 'joi';
 
-export const VERIFICATION_REDIS_PROVIDER = 'verification-redis';
+export const VERIFICATION_REDIS_PROVIDER = 'VERIFICATION_REDIS_PROVIDER';
 
 @Global()
 @Module({

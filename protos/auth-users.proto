@@ -3,14 +3,20 @@ syntax = "proto3";
 package auth.users;
 
 service AuthUsersService {
-    rpc GenerateTokenPair (GenerateTokenPairRequest) returns (GenerateTokenPairResponse);
+    rpc generateTokenPair (GenerateTokenPairRequest) returns (GenerateTokenPairResponse);
+}
+
+enum TokenType {
+    Normal = 0;
+    ActivateUser = 1;
 }
 
 message GenerateTokenPairRequest {
     string userId = 1;
     string userAgentId = 2;
     int32 accessTokenLifetime = 3;
-    optional int32 refreshTokenLifetime = 4;
+    TokenType tokenType = 4;
+    optional int32 refreshTokenLifetime = 5;
 }
 
 message GenerateTokenPairResponse {

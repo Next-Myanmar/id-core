@@ -1,5 +1,6 @@
 import { status as RpcStatus } from '@grpc/grpc-js';
 import { ArgumentsHost, Catch, ExceptionFilter, Logger } from '@nestjs/common';
+import { RmqContext } from '@nestjs/microservices';
 import { I18nContext } from 'nestjs-i18n';
 import { throwError } from 'rxjs';
 import { I18nValidationException } from '../exceptions';
@@ -55,6 +56,16 @@ export class I18nExceptionFilter implements ExceptionFilter {
         return exception;
       }
       case 'rpc': {
+        if (host.getArgByIndex(1) instanceof RmqContext) {
+          const context: RmqContext = host.getArgByIndex(1);
+          this.logger.warn(
+            {
+              event: context.getArgByIndex(2),
+              details: formattedMessages,
+            },
+            'Validation error occured',
+          );
+        }
         return throwError(() => ({
           code: RpcStatus.INVALID_ARGUMENT,
           message: JSON.stringify(formattedMessages),

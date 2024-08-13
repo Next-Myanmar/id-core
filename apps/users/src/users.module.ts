@@ -1,7 +1,15 @@
-import { LoggerModule, PrismaModule } from '@app/common';
+import {
+  HeaderResolver,
+  I18nModule,
+  LoggerModule,
+  PrismaModule,
+} from '@app/common';
+import { AuthUsersServiceModule } from '@app/common/grpc/auth-users';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
+import { AuthModule } from './auth/auth.module';
+import { VerificationRedisModule } from './redis/verification-redis.module';
 
 @Module({
   imports: [
@@ -14,7 +22,13 @@ import * as Joi from 'joi';
       }),
     }),
     LoggerModule,
+    I18nModule.forRoot({
+      resolvers: [HeaderResolver],
+    }),
     PrismaModule,
+    VerificationRedisModule,
+    AuthUsersServiceModule.forRootAsync({ envFilePath: './apps/users/.env' }),
+    AuthModule,
   ],
   controllers: [],
   providers: [],

@@ -3,7 +3,7 @@ import { Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as Joi from 'joi';
 
-export const TOKEN_REDIS_PROVIDER = 'TokenRedis';
+export const TOKEN_REDIS_PROVIDER = 'TOKEN_REDIS_PROVIDER';
 
 @Global()
 @Module({
