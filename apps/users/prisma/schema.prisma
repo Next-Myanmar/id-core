@@ -1,0 +1,79 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum Gender {
+  Male
+  Female
+  Other
+  NotSpecified
+}
+
+model User {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  email       String    @unique
+  password    String
+  firstName   String
+  lastName    String?
+  dateOfBirth DateTime?
+  gender      Gender    @default(NotSpecified)
+
+  verified   Boolean   @default(false)
+  verifiedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  devices           Device[]
+  passwordHistories PasswordHistory[]
+}
+
+model Device {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  browser         String
+  os              String
+  deviceType      String
+  deviceModel     String
+  deviceVendor    String
+  userAgentId     String
+  userAgentSource String
+
+  isLogined Boolean @default(false)
+
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  passwordHistories PasswordHistory[]
+
+  @@unique([userId, userAgentId])
+}
+
+model PasswordHistory {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @db.ObjectId
+
+  device   Device @relation(fields: [deviceId], references: [id])
+  deviceId String @db.ObjectId
+
+  changedAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

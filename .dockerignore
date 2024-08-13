@@ -1,0 +1,51 @@
+# Node / NPM
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Logs
+logs
+*.log
+
+# Directory for Docker volumes
+volumes
+
+# Dependency directories
+node_modules
+jspm_packages
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Miscellaneous
+.DS_Store
+.env
+.env.*
+.env.local
+.tmp
+.git
+.gitignore
+.gitattributes
+.dockerignore
+
+# IDE / editors
+.idea
+.vscode
+*.swp
+*.swo
+*.sublime*
+.project
+.settings
+
+# Operating system files
+Thumbs.db
+Desktop.ini
+
+# Build output directories
+dist
+build
+coverage
+out

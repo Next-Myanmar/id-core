@@ -1,0 +1,93 @@
+services:
+  mongo1:
+    image: mongo:latest
+    container_name: mongo1
+    command: ['--replSet', 'rs0', '--bind_ip_all']
+    ports:
+      - 27017:27017
+    healthcheck:
+      test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mongo1:27017',priority:1},{_id:1,host:'mongo2:27018',priority:0.5},{_id:2,host:'mongo3:27019',priority:0.5}]}) }" | mongosh --port 27017 --quiet
+      interval: 5s
+      timeout: 30s
+      start_period: 0s
+      retries: 30
+    volumes:
+      - 'mongo1_data:/data/db'
+      - 'mongo1_config:/data/configdb'
+    networks:
+      - mongo
+
+  mongo2:
+    image: mongo:latest
+    container_name: mongo2
+    command: ['--replSet', 'rs0', '--bind_ip_all', '--port', '27018']
+    ports:
+      - 27018:27018
+    volumes:
+      - 'mongo2_data:/data/db'
+      - 'mongo2_config:/data/configdb'
+    networks:
+      - mongo
+
+  mongo3:
+    image: mongo:latest
+    container_name: mongo3
+    command: ['--replSet', 'rs0', '--bind_ip_all', '--port', '27019']
+    ports:
+      - 27019:27019
+    volumes:
+      - 'mongo3_data:/data/db'
+      - 'mongo3_config:/data/configdb'
+    networks:
+      - mongo
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    command: ['redis-server', '--requirepass', '${REDIS_PASSWORD}']
+    ports:
+      - 6379:6379
+    volumes:
+      - redis_data:/data
+    env_file:
+      - .env
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+
+  rabbitmq:
+    image: rabbitmq:management-alpine
+    container_name: rabbitmq
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    env_file:
+      - .env
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: mailhog
+    restart: unless-stopped
+    ports:
+      - '1025:1025' # SMTP port
+      - '8025:8025' # MailHog web interface
+    environment:
+      MH_STORAGE: maildir
+      MH_MAILDIR_PATH: /tmp
+    volumes:
+      - maildir:/tmp
+
+networks:
+  mongo:
+
+volumes:
+  mongo1_data:
+  mongo2_data:
+  mongo3_data:
+  mongo1_config:
+  mongo2_config:
+  mongo3_config:
+  redis_data:
+  maildir: {}
