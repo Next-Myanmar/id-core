@@ -23,6 +23,7 @@ export class GenerateTokenPairService {
         generateTokenPairDto.userId,
         generateTokenPairDto.userAgentId,
         generateTokenPairDto.accessTokenLifetime,
+        generateTokenPairDto.tokenType,
         generateTokenPairDto.refreshTokenLifetime,
       );
     });

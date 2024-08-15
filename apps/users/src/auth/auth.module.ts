@@ -14,6 +14,12 @@ import { VerificationService } from './verification/verification.service';
       validationSchema: Joi.object({
         ALLOW_CODE_ATTEMPTS: Joi.number().required(),
         CODE_LIFETIME: Joi.number().required(),
+
+        NORMAL_ACCESS_LIFETIME: Joi.number().required(),
+        ACTIVATE_USER_ACCESS_LIFETIME: Joi.number().required(),
+
+        NORMAL_REFRESH_LIFETIME: Joi.number().required(),
+        ACTIVATE_USER_REFRESH_LIFETIME: Joi.number().required(),
       }),
     }),
   ],

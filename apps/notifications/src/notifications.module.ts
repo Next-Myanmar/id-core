@@ -1,4 +1,9 @@
-import { HeaderResolver, I18nModule, LoggerModule } from '@app/common';
+import {
+  HeaderResolver,
+  HealthModule,
+  I18nModule,
+  LoggerModule,
+} from '@app/common';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
@@ -17,6 +22,7 @@ import { UsersModule } from './users/users.module';
     I18nModule.forRoot({
       resolvers: [HeaderResolver],
     }),
+    HealthModule,
     UsersModule,
   ],
   controllers: [],

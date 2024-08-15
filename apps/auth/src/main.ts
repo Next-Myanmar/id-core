@@ -26,13 +26,15 @@ async function bootstrap() {
 
   app.useGlobalFilters(new I18nExceptionFilter());
 
+  const grpcUrlUsers = `${configService.getOrThrow('GRPC_HOST_USERS')}:${configService.getOrThrow('GRPC_PORT_USERS')}`;
+
   app.connectMicroservice(
     {
       transport: Transport.GRPC,
       options: {
         package: AUTH_USERS_PACKAGE_NAME,
         protoPath: join(__dirname, '../../../protos/auth-users.proto'),
-        url: configService.getOrThrow('GRPC_URL_USERS'),
+        url: grpcUrlUsers,
         ...(isDevelopment
           ? {
               onLoadPackageDefinition: (pkg: any, server: any) => {
@@ -46,6 +48,8 @@ async function bootstrap() {
   );
 
   await app.startAllMicroservices();
+
+  app.enableShutdownHooks();
 
   await app.listen(configService.getOrThrow('HTTP_PORT_AUTH'));
 }

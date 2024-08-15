@@ -20,7 +20,7 @@ export function getUserAgentDetails(useragent: string): UserAgentDetails {
     deviceType: result.device.type || 'unknown',
     deviceModel: result.device.model || 'unknown',
     deviceVendor: result.device.vendor || 'unknown',
-    useragentSource: useragent,
+    userAgentSource: useragent,
     details: result,
   };
 

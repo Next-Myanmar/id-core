@@ -11,7 +11,8 @@ import { GenerateTokenPairService } from './services/generate-token-pair.service
       envFilePath: './apps/auth/.env',
       isGlobal: true,
       validationSchema: Joi.object({
-        GRPC_URL_USERS: Joi.string().required(),
+        GRPC_HOST_USERS: Joi.string().required(),
+        GRPC_PORT_USERS: Joi.number().required(),
       }),
     }),
   ],

@@ -44,6 +44,9 @@ async function bootstrap() {
   });
 
   await app.startAllMicroservices();
+
+  app.enableShutdownHooks();
+
   await app.listen(configService.getOrThrow<number>('HTTP_PORT_NOTIFICATIONS'));
 }
 bootstrap();

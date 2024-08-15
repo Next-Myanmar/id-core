@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsNumber, IsOptional, Min } from 'class-validator';
+import { TokenType } from '@app/common/grpc/auth-users';
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional, Min } from 'class-validator';
 
 export class GenerateTokenPairDto {
   @IsNotEmpty()
@@ -10,6 +11,9 @@ export class GenerateTokenPairDto {
   @Min(60)
   @IsNumber({ allowNaN: false })
   accessTokenLifetime: number;
+
+  @IsEnum(TokenType)
+  tokenType: TokenType;
 
   @IsOptional()
   @Min(60)

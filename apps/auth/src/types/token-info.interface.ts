@@ -1,4 +1,4 @@
-import { ClientOauth } from '@prisma/client';
+import { ClientOauth } from './client-oauth.interface';
 
 export interface TokenInfo {
   accessToken: string;

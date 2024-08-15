@@ -2,7 +2,6 @@ import { MailerModule, MailerService } from '@nestjs-modules/mailer';
 import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
 import { MailerAsyncOptions } from '@nestjs-modules/mailer/dist/interfaces/mailer-async-options.interface';
 import { DynamicModule, Global, Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { join } from 'path';
 import { EmailService } from './email.service';
 
@@ -45,10 +44,10 @@ export class EmailModule {
       providers: [
         {
           provide: mailerProvider.provide,
-          useFactory: (config: ConfigService, mailerService: MailerService) => {
-            return new EmailService(config, mailerService);
+          useFactory: (mailerService: MailerService) => {
+            return new EmailService(mailerService);
           },
-          inject: [ConfigService, MailerService],
+          inject: [MailerService],
         },
       ],
       exports: [mailerProvider.provide],

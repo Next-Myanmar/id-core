@@ -2,6 +2,7 @@ export * from './database';
 export * from './decorators';
 export * from './dto';
 export * from './email';
+export * from './health';
 export * from './i18n';
 export * from './logger';
 export * from './redis';

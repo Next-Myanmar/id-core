@@ -4,7 +4,7 @@ import { UserAgentDetails } from '../../../../../libs/common/src/utils/user-agen
 import { SignupDto } from '../dto/signup.dto';
 import { SignupService } from '../services/signup.service';
 
-@Controller()
+@Controller('api')
 export class SignupController {
   private readonly logger = new Logger(SignupController.name);
 

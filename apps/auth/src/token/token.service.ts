@@ -2,6 +2,7 @@ import { RedisService } from '@app/common';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { promisify } from 'util';
+import { TokenType } from '../../../../libs/common/src/grpc/auth-users/auth-users';
 import { TOKEN_REDIS_PROVIDER } from '../redis/token-redis.module';
 import { AccessTokenInfo } from '../types/access-token-info.interface';
 import { KeysInfo } from '../types/keys-info';
@@ -110,6 +111,7 @@ export class TokenService {
     userId: string,
     userAgentId: string,
     accessTokenLifetime: number,
+    tokenType: TokenType,
     refreshTokenLifetime?: number,
   ): Promise<TokenInfo> {
     this.logger.debug('saveUsersToken Start');
@@ -124,7 +126,7 @@ export class TokenService {
     const accessTokenInfo: AccessTokenInfo = {
       accessToken,
       accessTokenExpiresAt,
-      user: { userId },
+      user: { userId, tokenType },
       userAgentId,
     };
     this.logger.debug(`Access Token Info: ${JSON.stringify(accessTokenInfo)}`);

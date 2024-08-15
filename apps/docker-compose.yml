@@ -1,0 +1,83 @@
+services:
+  auth:
+    build:
+      context: ../
+      dockerfile: ./apps/auth/Dockerfile
+      target: development
+    container_name: auth
+    command: npm start auth
+    env_file:
+      - ./auth/.env
+    environment:
+      - REDIS_HOST_TOKEN=redis
+    ports:
+      - '3001:3001'
+      - '5001:5001'
+    volumes:
+      - auth_data:/usr/src/app
+    networks:
+      - id-core-network
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3001/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  users:
+    build:
+      context: ../
+      dockerfile: ./apps/users/Dockerfile
+      target: development
+    container_name: users
+    command: npm start users
+    env_file:
+      - ./users/.env
+    environment:
+      - REDIS_HOST_VERIFICATION=redis
+      - RMQ_HOST_USERS_NOTIFICATIONS=rabbitmq
+    ports:
+      - '3002:3002'
+    volumes:
+      - users_data:/usr/src/app
+    networks:
+      - id-core-network
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3002/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  notifications:
+    build:
+      context: ../
+      dockerfile: ./apps/notifications/Dockerfile
+      target: development
+    container_name: notifications
+    command: npm start notifications
+    env_file:
+      - ./notifications/.env
+    environment:
+      - RMQ_HOST_USERS=rabbitmq
+    ports:
+      - '3003:3003'
+    volumes:
+      - notifications_data:/usr/src/app
+    networks:
+      - id-core-network
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3003/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  id-core-network:
+    external: true
+
+volumes:
+  auth_data:
+  users_data:
+  notifications_data:

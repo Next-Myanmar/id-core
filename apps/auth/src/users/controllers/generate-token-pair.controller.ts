@@ -10,7 +10,9 @@ import { GenerateTokenPairService } from '../services/generate-token-pair.servic
 
 @Controller()
 export class GenerateTokenPairController {
-  private readonly logger = new Logger(GenerateTokenPairController.name);
+  private readonly logger = new Logger(
+    `Users (gRpc) - ${GenerateTokenPairController.name}`,
+  );
 
   constructor(
     private readonly generateTokenPairService: GenerateTokenPairService,
@@ -20,7 +22,7 @@ export class GenerateTokenPairController {
   async generateTokenPair(
     @Payload() generateTokenPairDto: GenerateTokenPairDto,
   ): Promise<GenerateTokenPairResponse> {
-    this.logger.log('Generate Token Pair (gRPC) Start');
+    this.logger.log('Generate Token Pair Start');
 
     const result =
       await this.generateTokenPairService.generateTokenPair(
@@ -29,7 +31,7 @@ export class GenerateTokenPairController {
 
     const data: GenerateTokenPairResponse = { ...result };
 
-    this.logger.log('Generate Token Pair (gRPC) End');
+    this.logger.log('Generate Token Pair End');
 
     return data;
   }

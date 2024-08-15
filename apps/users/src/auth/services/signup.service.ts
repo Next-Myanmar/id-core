@@ -1,17 +1,24 @@
 import {
   compareHash,
+  emitEmail,
   hash,
   I18nValidationException,
   i18nValidationMessage,
-  PrismaService,
   RedisService,
   TokenPairResponseDto,
-  TransactionalPrismaClient,
   UserAgentDetails,
 } from '@app/common';
 import { TokenType } from '@app/common/grpc/auth-users';
+import {
+  NOTIFICATIONS_USERS_SERVERS_NAME,
+  SEND_ACTIVATE_USER_EMAIL,
+  SendActivateUserEmailDto,
+} from '@app/common/rmq/notifications/users';
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { Device, PasswordHistory, User } from '@prisma/client';
+import { ClientProxy } from '@nestjs/microservices';
+import { Device, PasswordHistory, User } from '../../prisma/generated';
+import { PrismaService } from '../../prisma/prisma.service';
+import { TransactionalPrismaClient } from '../../prisma/transactional-prisma-client';
 import { VERIFICATION_REDIS_PROVIDER } from '../../redis/verification-redis.module';
 import { SignupDto } from '../dto/signup.dto';
 import { VerificationService } from '../verification/verification.service';
@@ -27,6 +34,8 @@ export class SignupService {
     private readonly verificationRedis: RedisService,
     private readonly verification: VerificationService,
     private readonly token: TokenService,
+    @Inject(NOTIFICATIONS_USERS_SERVERS_NAME)
+    private readonly client: ClientProxy,
   ) {}
 
   async signup(
@@ -59,6 +68,15 @@ export class SignupService {
           device.userAgentId,
           TokenType.ActivateUser,
         );
+
+        const data: SendActivateUserEmailDto = {
+          recipient: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          code: activationCode,
+        };
+
+        await emitEmail(this.client, SEND_ACTIVATE_USER_EMAIL, data);
 
         return tokenPair;
       });

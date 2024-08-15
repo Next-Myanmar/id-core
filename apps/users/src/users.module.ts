@@ -1,14 +1,16 @@
 import {
   HeaderResolver,
+  HealthModule,
   I18nModule,
   LoggerModule,
-  PrismaModule,
 } from '@app/common';
 import { AuthUsersServiceModule } from '@app/common/grpc/auth-users';
+import { UsersNotificationsModule } from '@app/common/rmq/notifications/users';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
 import { AuthModule } from './auth/auth.module';
+import { PrismaModule } from './prisma/prisma.module';
 import { VerificationRedisModule } from './redis/verification-redis.module';
 
 @Module({
@@ -25,9 +27,13 @@ import { VerificationRedisModule } from './redis/verification-redis.module';
     I18nModule.forRoot({
       resolvers: [HeaderResolver],
     }),
-    PrismaModule,
     VerificationRedisModule,
     AuthUsersServiceModule.forRootAsync({ envFilePath: './apps/users/.env' }),
+    UsersNotificationsModule.forRootAsync({
+      envFilePath: './apps/users/.env',
+    }),
+    PrismaModule,
+    HealthModule,
     AuthModule,
   ],
   controllers: [],

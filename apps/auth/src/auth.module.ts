@@ -1,8 +1,8 @@
 import {
   HeaderResolver,
+  HealthModule,
   I18nModule,
   LoggerModule,
-  PrismaModule,
 } from '@app/common';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
@@ -25,8 +25,8 @@ import { UsersModule } from './users/users.module';
     I18nModule.forRoot({
       resolvers: [HeaderResolver, GrpcMetadataResolver],
     }),
-    PrismaModule,
     TokenRedisModule,
+    HealthModule,
     UsersModule,
   ],
   controllers: [],

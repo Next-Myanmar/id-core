@@ -20,6 +20,8 @@ async function bootstrap() {
 
   app.useGlobalFilters(new I18nExceptionFilter());
 
+  app.enableShutdownHooks();
+
   await app.listen(configService.getOrThrow('HTTP_PORT_USERS'));
 }
 bootstrap();
