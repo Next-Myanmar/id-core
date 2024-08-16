@@ -19,9 +19,14 @@ import { updateLoginHistory } from '../utils/utils';
 export class AuthGuard implements CanActivate {
   private readonly logger = new Logger(AuthGuard.name);
 
-  private readonly conditions = {
+  private readonly conditions: Record<
+    TokenType,
+    { isUserVerified?: boolean; isDeviceLogined?: boolean }
+  > = {
     [TokenType.Normal]: { isUserVerified: true, isDeviceLogined: true },
     [TokenType.ActivateUser]: { isUserVerified: false, isDeviceLogined: false },
+    [TokenType.VerifyLogin]: { isUserVerified: true, isDeviceLogined: false },
+    [TokenType.UNRECOGNIZED]: {},
   };
 
   constructor(

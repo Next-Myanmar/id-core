@@ -5,9 +5,11 @@ import { TokenService } from '../token/token.service';
 import { ActivateUserController } from './controllers/activate-user.controller';
 import { LoginController } from './controllers/login.controller';
 import { SignupController } from './controllers/signup.controller';
+import { VerifyLoginController } from './controllers/verify-login.controller';
 import { ActivateUserService } from './services/activate-user.service';
 import { LoginService } from './services/login.service';
 import { SignupService } from './services/signup.service';
+import { VerifyLoginService } from './services/verify-login.service';
 import { VerificationService } from './verification/verification.service';
 
 @Module({
@@ -29,13 +31,19 @@ import { VerificationService } from './verification/verification.service';
       }),
     }),
   ],
-  controllers: [SignupController, ActivateUserController, LoginController],
+  controllers: [
+    SignupController,
+    ActivateUserController,
+    LoginController,
+    VerifyLoginController,
+  ],
   providers: [
     VerificationService,
     TokenService,
     SignupService,
     ActivateUserService,
     LoginService,
+    VerifyLoginService,
   ],
 })
 export class AuthModule {}

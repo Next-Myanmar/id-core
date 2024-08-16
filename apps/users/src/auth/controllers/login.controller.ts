@@ -4,7 +4,14 @@ import {
   TokenPairResponseDto,
   UserAgentDetails,
 } from '@app/common';
-import { Body, Controller, Logger, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  Post,
+} from '@nestjs/common';
 import { LoginDto } from '../dto/login.dto';
 import { LoginService } from '../services/login.service';
 
@@ -15,6 +22,7 @@ export class LoginController {
   constructor(private readonly loginService: LoginService) {}
 
   @Post('login')
+  @HttpCode(HttpStatus.OK)
   @Public()
   async login(
     @Body() loginDto: LoginDto,
