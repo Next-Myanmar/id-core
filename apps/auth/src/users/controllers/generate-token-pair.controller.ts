@@ -29,7 +29,10 @@ export class GenerateTokenPairController {
         generateTokenPairDto,
       );
 
-    const data: GenerateTokenPairResponse = { ...result };
+    const data: GenerateTokenPairResponse = {
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+    };
 
     this.logger.log('Generate Token Pair End');
 

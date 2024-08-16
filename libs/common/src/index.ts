@@ -3,6 +3,7 @@ export * from './decorators';
 export * from './dto';
 export * from './email';
 export * from './graphql';
+export * from './guards';
 export * from './health';
 export * from './i18n';
 export * from './logger';

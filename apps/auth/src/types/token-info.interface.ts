@@ -4,8 +4,10 @@ import { ClientOauth } from './client-oauth.interface';
 export interface TokenInfo {
   accessToken: string;
   accessTokenExpiresAt: Date;
-  refreshToken: string;
-  refreshTokenExpiresAt: Date;
+  accessTokenLifetime: number;
+  refreshToken?: string;
+  refreshTokenExpiresAt?: Date;
+  refreshTokenLifetime?: number;
   user: AuthUser;
   userAgentId: string;
   scope?: string | string[];

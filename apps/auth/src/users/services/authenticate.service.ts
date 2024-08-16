@@ -1,7 +1,7 @@
 import { getUserAgentDetails } from '@app/common';
 import { Injectable, Logger } from '@nestjs/common';
 import { TokenService } from '../../token/token.service';
-import { AccessTokenInfo } from '../../types/access-token-info.interface';
+import { TokenInfo } from '../../types/token-info.interface';
 import { getTokenFromAuthorization } from '../../utils/utils';
 import { AuthenticateDto } from '../dto/authenticate.dto';
 
@@ -11,9 +11,7 @@ export class AuthenticateService {
 
   constructor(private readonly tokenService: TokenService) {}
 
-  async authenticate(
-    authenticateDto: AuthenticateDto,
-  ): Promise<AccessTokenInfo> {
+  async authenticate(authenticateDto: AuthenticateDto): Promise<TokenInfo> {
     this.logger.debug(`AuthenticateDto: ${JSON.stringify(authenticateDto)}`);
 
     const accessToken = getTokenFromAuthorization(

@@ -9,9 +9,7 @@ import {
 import * as crypto from 'crypto';
 import { promisify } from 'util';
 import { TOKEN_REDIS_PROVIDER } from '../redis/token-redis.module';
-import { AccessTokenInfo } from '../types/access-token-info.interface';
 import { KeysInfo } from '../types/keys-info';
-import { RefreshTokenInfo } from '../types/refresh-token-info.interface';
 import { TokenInfo } from '../types/token-info.interface';
 
 @Injectable()
@@ -132,9 +130,10 @@ export class TokenService {
       new Date().getTime() + accessTokenLifetime * 1000,
     );
 
-    const accessTokenInfo: AccessTokenInfo = {
+    let tokenInfo: TokenInfo = {
       accessToken,
       accessTokenExpiresAt,
+      accessTokenLifetime,
       user: {
         userId,
         deviceId,
@@ -142,7 +141,7 @@ export class TokenService {
       },
       userAgentId,
     };
-    this.logger.debug(`Access Token Info: ${JSON.stringify(accessTokenInfo)}`);
+    this.logger.debug(`Access Token Info: ${JSON.stringify(tokenInfo)}`);
 
     const accessTokenKey = this.getAccessTokenKey(accessToken);
 
@@ -150,13 +149,12 @@ export class TokenService {
 
     await this.tokenRedis.setWithExpire(
       accessTokenKey,
-      JSON.stringify(accessTokenInfo),
+      JSON.stringify(tokenInfo),
       accessTokenLifetime,
     );
 
     let keysInfo: KeysInfo = { accessTokenKey };
     let lifetime = accessTokenLifetime;
-    let refreshTokenInfo: RefreshTokenInfo;
 
     if (refreshTokenLifetime) {
       const refreshToken = await this.generateRandomToken();
@@ -164,19 +162,13 @@ export class TokenService {
         new Date().getTime() + refreshTokenLifetime * 1000,
       );
 
-      refreshTokenInfo = {
+      tokenInfo = {
+        ...tokenInfo,
         refreshToken,
         refreshTokenExpiresAt,
-        user: {
-          userId,
-          deviceId,
-          tokenType,
-        },
-        userAgentId,
+        refreshTokenLifetime,
       };
-      this.logger.debug(
-        `Refresh Token Info: ${JSON.stringify(refreshTokenInfo)}`,
-      );
+      this.logger.debug(`Refresh Token Info: ${JSON.stringify(tokenInfo)}`);
 
       const refreshTokenKey = this.getRefreshTokenKey(refreshToken);
 
@@ -184,7 +176,7 @@ export class TokenService {
 
       await this.tokenRedis.setWithExpire(
         refreshTokenKey,
-        JSON.stringify(refreshTokenInfo),
+        JSON.stringify(tokenInfo),
         refreshTokenLifetime,
       );
 
@@ -196,16 +188,13 @@ export class TokenService {
 
     this.logger.debug('saveUsersToken End');
 
-    return {
-      ...accessTokenInfo,
-      ...refreshTokenInfo,
-    };
+    return tokenInfo;
   }
 
   async authenticateUsers(
     accessToken: string,
     userAgentId: string,
-  ): Promise<AccessTokenInfo> {
+  ): Promise<TokenInfo> {
     this.logger.debug('authenticateUsers Start');
 
     const accessTokenKey = this.getAccessTokenKey(accessToken);
@@ -218,16 +207,66 @@ export class TokenService {
       throw new UnauthorizedException();
     }
 
-    const tokenInfo: AccessTokenInfo = JSON.parse(value);
+    const tokenInfo: TokenInfo = JSON.parse(value);
 
     if (tokenInfo.userAgentId !== userAgentId) {
       this.logger.warn(
         `The useragents are different. Stored UserAgent: ${tokenInfo.userAgentId}, Actual UserAgent: ${userAgentId}`,
       );
+
+      await this.revokeKeysInfo(tokenInfo.user.userId, tokenInfo.user.deviceId);
+
       throw new UnauthorizedException();
     }
 
     this.logger.debug('authenticateUsers End');
+
+    return tokenInfo;
+  }
+
+  async checkRefreshTokenUsers(
+    refreshToken: string,
+    accessToken: string,
+    userAgentId: string,
+  ): Promise<TokenInfo> {
+    this.logger.debug('checkRefreshTokenUsers Start');
+
+    const refreshTokenKey = this.getRefreshTokenKey(refreshToken);
+    this.logger.debug(`Refresh Token Key: ${refreshTokenKey}`);
+
+    const value = await this.tokenRedis.get(refreshTokenKey);
+    this.logger.debug(`Refresh Token Info: ${value}`);
+
+    if (!value) {
+      throw new UnauthorizedException();
+    }
+
+    const tokenInfo: TokenInfo = JSON.parse(value);
+
+    if (tokenInfo.accessToken !== accessToken) {
+      this.logger.warn(
+        `The access tokens are different. Stored Access Token: ${tokenInfo.accessToken}, Actual Access Token: ${accessToken}`,
+      );
+
+      await this.revokeKeysInfo(tokenInfo.user.userId, tokenInfo.user.deviceId);
+
+      const key = this.getAccessTokenKey(accessToken);
+      await this.tokenRedis.delete(key);
+
+      throw new UnauthorizedException();
+    }
+
+    if (tokenInfo.userAgentId !== userAgentId) {
+      this.logger.warn(
+        `The useragents are different. Stored UserAgent: ${tokenInfo.userAgentId}, Actual UserAgent: ${userAgentId}`,
+      );
+
+      await this.revokeKeysInfo(tokenInfo.user.userId, tokenInfo.user.deviceId);
+
+      throw new UnauthorizedException();
+    }
+
+    this.logger.debug('checkRefreshTokenUsers End');
 
     return tokenInfo;
   }

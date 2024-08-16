@@ -6,5 +6,6 @@
   "LastName": "Last Name",
   "DateOfBirth": "Date of birth",
   "Gender": "Gender",
-  "Code": "Code"
+  "Code": "Code",
+  "RefreshToken": "Refresh Token"
 }
