@@ -1,7 +1,7 @@
 import { I18nExceptionFilter, I18nValidationPipe } from '@app/common';
 import {
-  SEND_WELCOME_USER_EMAIL,
-  SendWelcomeUserEmailDto,
+  SEND_VERIFY_LOGIN_EMAIL,
+  SendVerifyLoginEmailDto,
 } from '@app/common/rmq/notifications/users';
 import {
   Controller,
@@ -12,19 +12,19 @@ import {
 } from '@nestjs/common';
 import { EventPattern, Payload } from '@nestjs/microservices';
 import { I18nLanguageInterceptor } from 'nestjs-i18n';
-import { SendWelcomeUserEmailService } from '../services/send-welcome-user-email.service';
+import { SendVerifyLoginEmailService } from '../services/send-verify-login-email.service';
 
 @Controller()
-export class SendWelcomeUserEmailController {
+export class SendVerifyLoginEmailController {
   private readonly logger = new Logger(
-    `Users - ${SendWelcomeUserEmailController.name}`,
+    `Users - ${SendVerifyLoginEmailController.name}`,
   );
 
   constructor(
-    private readonly sendWelcomeUserEmailService: SendWelcomeUserEmailService,
+    private readonly sendVerifyLoginEmailService: SendVerifyLoginEmailService,
   ) {}
 
-  @EventPattern(SEND_WELCOME_USER_EMAIL)
+  @EventPattern(SEND_VERIFY_LOGIN_EMAIL)
   @UseInterceptors(I18nLanguageInterceptor)
   @UsePipes(
     new I18nValidationPipe({
@@ -34,15 +34,15 @@ export class SendWelcomeUserEmailController {
     }),
   )
   @UseFilters(new I18nExceptionFilter())
-  async handleSendWelcomeUserEmail(
-    @Payload() sendWelcomeUserEmailDto: SendWelcomeUserEmailDto,
+  async handleSendVerifyLoginEmail(
+    @Payload() sendVerifyLoginEmailDto: SendVerifyLoginEmailDto,
   ): Promise<void> {
-    this.logger.log('Send Welcome User Email Start');
+    this.logger.log('Send Verify Login Email Start');
 
-    await this.sendWelcomeUserEmailService.sendWelcomeUserEmail(
-      sendWelcomeUserEmailDto,
+    await this.sendVerifyLoginEmailService.sendVerifyLoginEmail(
+      sendVerifyLoginEmailDto,
     );
 
-    this.logger.log('Send Welcome User Email End');
+    this.logger.log('Send Verify Login Email End');
   }
 }

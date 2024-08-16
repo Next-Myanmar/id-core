@@ -13,6 +13,7 @@ export const protobufPackage = "auth.users";
 export enum TokenType {
   Normal = 0,
   ActivateUser = 1,
+  VerifyLogin = 2,
   UNRECOGNIZED = -1,
 }
 

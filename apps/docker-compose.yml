@@ -60,6 +60,9 @@ services:
       - ./notifications/.env
     environment:
       - RMQ_HOST_USERS=rabbitmq
+      - SMTP_HOST_USERS_ACTIVATE_USER=mailhog
+      - SMTP_HOST_USERS_WELCOME_USER=mailhog
+      - SMTP_HOST_USERS_VERIFY_LOGIN=mailhog
     ports:
       - '3003:3003'
     volumes:
