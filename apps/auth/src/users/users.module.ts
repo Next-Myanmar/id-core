@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
-import { TokenService } from '../token/token.service';
+import { AuthenticateController } from './controllers/authenticate.controller';
 import { GenerateTokenPairController } from './controllers/generate-token-pair.controller';
+import { AuthenticateService } from './services/authenticate.service';
 import { GenerateTokenPairService } from './services/generate-token-pair.service';
 
 @Module({
@@ -16,7 +17,7 @@ import { GenerateTokenPairService } from './services/generate-token-pair.service
       }),
     }),
   ],
-  controllers: [GenerateTokenPairController],
-  providers: [TokenService, GenerateTokenPairService],
+  controllers: [GenerateTokenPairController, AuthenticateController],
+  providers: [GenerateTokenPairService, AuthenticateService],
 })
 export class UsersModule {}

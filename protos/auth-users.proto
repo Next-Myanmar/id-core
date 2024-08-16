@@ -4,6 +4,7 @@ package auth.users;
 
 service AuthUsersService {
     rpc generateTokenPair (GenerateTokenPairRequest) returns (GenerateTokenPairResponse);
+    rpc authenticate (AuthenticateRequest) returns (AuthUser);
 }
 
 enum TokenType {
@@ -13,13 +14,25 @@ enum TokenType {
 
 message GenerateTokenPairRequest {
     string userId = 1;
-    string userAgentId = 2;
-    int32 accessTokenLifetime = 3;
+    string deviceId = 2;
+    string userAgentSource = 3;
     TokenType tokenType = 4;
-    optional int32 refreshTokenLifetime = 5;
+    int32 accessTokenLifetime = 5;
+    optional int32 refreshTokenLifetime = 6;
 }
 
 message GenerateTokenPairResponse {
     string accessToken = 1;
     string refreshToken = 2;
+}
+
+message AuthenticateRequest {
+    string authorization = 1;
+    string userAgentSource = 2;
+}
+
+message AuthUser {
+    string userId = 1;
+    string deviceId = 2;
+    TokenType tokenType = 3;
 }

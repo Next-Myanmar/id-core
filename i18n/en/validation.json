@@ -1,0 +1,14 @@
+{
+  "NOT_EMPTY": "{property} is required",
+  "NOT_EMPTY_EACH": "Each value of {property} is required",
+  "INVALID": "{property} is invalid",
+  "INCORRECT": "{property} is not correct",
+  "INVALID_PASSWORD": "Password is not strong enough",
+  "INVALID_NEW_PASSWORD": "The new password is invalid. Please choose another one",
+  "POSITIVE": "{property} must be a positive number",
+  "EMAIL_EXIST": "The user with that email already exists",
+  "EMAIL_NOT_EXIST": "The user with email not exists",
+  "INVALID_EMAIL_CREDENTIAL": "Email or Password incorrect",
+  "INVALID_CODE": "Code is invalid. Please try again or request a new code",
+  "INVALID_DEVICES": "There are invalid device(s)"
+}

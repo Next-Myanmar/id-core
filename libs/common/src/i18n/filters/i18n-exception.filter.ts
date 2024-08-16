@@ -1,12 +1,55 @@
-import { status as RpcStatus } from '@grpc/grpc-js';
-import { ArgumentsHost, Catch, ExceptionFilter, Logger } from '@nestjs/common';
+import { GraphQLErrorCodes } from '@app/common/graphql';
+import { status as gRpcStatus } from '@grpc/grpc-js';
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpStatus,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { RmqContext } from '@nestjs/microservices';
 import { I18nContext } from 'nestjs-i18n';
 import { throwError } from 'rxjs';
 import { I18nValidationException } from '../exceptions';
 import { formatI18nErrors } from '../utils';
 
-@Catch(I18nValidationException)
+const ErrorDetails = {
+  UnauthorizedException: {
+    key: 'exception.UNAUTHENTICATED',
+    codes: {
+      http: HttpStatus.UNAUTHORIZED,
+      graphql: GraphQLErrorCodes.UNAUTHENTICATED,
+      rpc: gRpcStatus.UNAUTHENTICATED,
+    },
+  },
+  ForbiddenException: {
+    key: 'exception.FORBIDDEN',
+    codes: {
+      http: HttpStatus.FORBIDDEN,
+      graphql: GraphQLErrorCodes.FORBIDDEN,
+      rpc: gRpcStatus.PERMISSION_DENIED,
+    },
+  },
+  NotFoundException: {
+    key: 'exception.NOT_FOUND',
+    codes: {
+      http: HttpStatus.NOT_FOUND,
+      graphql: GraphQLErrorCodes.NOT_FOUND,
+      rpc: gRpcStatus.PERMISSION_DENIED,
+    },
+  },
+  unknown: {
+    key: 'exception.INTERNAL_SERVER_ERROR',
+    codes: {
+      http: HttpStatus.INTERNAL_SERVER_ERROR,
+      graphql: GraphQLErrorCodes.INTERNAL_SERVER_ERROR,
+      rpc: gRpcStatus.INTERNAL,
+    },
+  },
+};
+
+@Catch(I18nValidationException, UnauthorizedException)
 export class I18nExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(I18nExceptionFilter.name);
 
@@ -15,7 +58,60 @@ export class I18nExceptionFilter implements ExceptionFilter {
       return this.handleValidationError(exception, host);
     }
 
-    return exception;
+    const errorDetail = ErrorDetails[exception.name];
+    const translateKey = errorDetail.key;
+
+    const i18nContext = I18nContext.current();
+
+    const message: string = i18nContext.t(translateKey, {
+      lang: i18nContext.lang,
+    });
+
+    const hostType: string = host.getType();
+
+    const code = errorDetail.codes[hostType];
+
+    switch (hostType) {
+      case 'http': {
+        const httpResponse = host.switchToHttp().getResponse();
+        const responseBody = {
+          statusCode: code,
+          message,
+        };
+
+        httpResponse.status(code).send(responseBody);
+        break;
+      }
+      case 'graphql': {
+        exception.message = message;
+
+        const response = exception.getResponse() as any;
+        response.message = message;
+        response.code = code;
+
+        delete response.error;
+
+        return exception;
+      }
+      case 'rpc': {
+        if (host.getArgByIndex(1) instanceof RmqContext) {
+          const context: RmqContext = host.getArgByIndex(1);
+          this.logger.warn(
+            {
+              event: context.getArgByIndex(2),
+              details: message,
+            },
+            'Validation error occured',
+          );
+        }
+        return throwError(() => ({
+          code,
+          message,
+        }));
+      }
+      default:
+        throw new Error('Unexpected host type: ' + hostType);
+    }
   }
 
   private handleValidationError(
@@ -44,15 +140,23 @@ export class I18nExceptionFilter implements ExceptionFilter {
       case 'http': {
         const httpResponse = host.switchToHttp().getResponse();
         const responseBody = {
-          statusCode: exception.getStatus(),
+          statusCode: HttpStatus.BAD_REQUEST,
           message,
           details: formattedMessages,
         };
 
-        httpResponse.status(exception.getStatus()).send(responseBody);
+        httpResponse.status(HttpStatus.BAD_REQUEST).send(responseBody);
         break;
       }
       case 'graphql': {
+        exception.message = message;
+        response.message = message;
+        response.code = GraphQLErrorCodes.BAD_USER_INPUT;
+
+        response.details = formattedMessages;
+
+        delete response.error;
+
         return exception;
       }
       case 'rpc': {
@@ -67,7 +171,7 @@ export class I18nExceptionFilter implements ExceptionFilter {
           );
         }
         return throwError(() => ({
-          code: RpcStatus.INVALID_ARGUMENT,
+          code: gRpcStatus.INVALID_ARGUMENT,
           message: JSON.stringify(formattedMessages),
         }));
       }

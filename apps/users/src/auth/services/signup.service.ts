@@ -20,9 +20,9 @@ import { Device, PasswordHistory, User } from '../../prisma/generated';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TransactionalPrismaClient } from '../../prisma/transactional-prisma-client';
 import { VERIFICATION_REDIS_PROVIDER } from '../../redis/verification-redis.module';
+import { TokenService } from '../../token/token.service';
 import { SignupDto } from '../dto/signup.dto';
 import { VerificationService } from '../verification/verification.service';
-import { TokenService } from './token.service';
 
 @Injectable()
 export class SignupService {
@@ -65,7 +65,8 @@ export class SignupService {
 
         const tokenPair = await this.token.generateTokenPair(
           user.id,
-          device.userAgentId,
+          device.id,
+          userAgentDetails.userAgentSource,
           TokenType.ActivateUser,
         );
 

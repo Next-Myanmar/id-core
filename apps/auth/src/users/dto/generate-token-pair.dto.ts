@@ -6,7 +6,10 @@ export class GenerateTokenPairDto {
   userId: string;
 
   @IsNotEmpty()
-  userAgentId: string;
+  deviceId: string;
+
+  @IsNotEmpty()
+  userAgentSource: string;
 
   @Min(60)
   @IsNumber({ allowNaN: false })

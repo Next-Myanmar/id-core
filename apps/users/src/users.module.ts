@@ -4,14 +4,16 @@ import {
   I18nModule,
   LoggerModule,
 } from '@app/common';
-import { AuthUsersServiceModule } from '@app/common/grpc/auth-users';
 import { UsersNotificationsModule } from '@app/common/rmq/notifications/users';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 import * as Joi from 'joi';
 import { AuthModule } from './auth/auth.module';
+import { AuthGuard } from './guards/auth.guard';
 import { PrismaModule } from './prisma/prisma.module';
 import { VerificationRedisModule } from './redis/verification-redis.module';
+import { TokenModule } from './token/token.module';
 
 @Module({
   imports: [
@@ -28,15 +30,20 @@ import { VerificationRedisModule } from './redis/verification-redis.module';
       resolvers: [HeaderResolver],
     }),
     VerificationRedisModule,
-    AuthUsersServiceModule.forRootAsync({ envFilePath: './apps/users/.env' }),
     UsersNotificationsModule.forRootAsync({
       envFilePath: './apps/users/.env',
     }),
     PrismaModule,
+    TokenModule,
     HealthModule,
     AuthModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+  ],
 })
 export class UsersModule {}

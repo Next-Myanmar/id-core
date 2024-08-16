@@ -1,17 +1,25 @@
 import { TokenPairResponseDto } from '@app/common';
 import {
   AUTH_USERS_SERVICE_NAME,
+  AuthUser,
   AuthUsersServiceClient,
   TokenType,
 } from '@app/common/grpc/auth-users';
-import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { status as gRPCStatus } from '@grpc/grpc-js';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  OnModuleInit,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ClientGrpc } from '@nestjs/microservices';
-import { lastValueFrom } from 'rxjs';
+import { catchError, lastValueFrom, throwError } from 'rxjs';
 import {
   AccessTokenLifetimeKeys,
   RefreshTokenLifetimeKeys,
-} from '../constants/constants';
+} from '../auth/constants/constants';
 
 @Injectable()
 export class TokenService implements OnModuleInit {
@@ -34,7 +42,8 @@ export class TokenService implements OnModuleInit {
 
   async generateTokenPair(
     userId: string,
-    userAgentId: string,
+    deviceId: string,
+    userAgentSource: string,
     tokenType: TokenType,
   ): Promise<TokenPairResponseDto> {
     const accessLifetimeKey = AccessTokenLifetimeKeys[tokenType];
@@ -49,7 +58,8 @@ export class TokenService implements OnModuleInit {
 
     const result = this.authUsersServiceClient.generateTokenPair({
       userId,
-      userAgentId,
+      deviceId,
+      userAgentSource,
       accessTokenLifetime,
       refreshTokenLifetime,
       tokenType,
@@ -61,5 +71,30 @@ export class TokenService implements OnModuleInit {
     this.logger.debug(`Tokens: ${JSON.stringify(tokens)}`);
 
     return { ...tokens, expiresIn: accessTokenLifetime };
+  }
+
+  async authenticate(
+    authorization: string,
+    userAgentSource: string,
+  ): Promise<AuthUser> {
+    const result = this.authUsersServiceClient
+      .authenticate({
+        authorization,
+        userAgentSource,
+      })
+      .pipe(
+        catchError((err) => {
+          if (err.code === gRPCStatus.UNAUTHENTICATED) {
+            return throwError(() => new UnauthorizedException());
+          }
+          return throwError(() => err);
+        }),
+      );
+
+    const authUser = await lastValueFrom(result);
+
+    this.logger.debug(`Auth User: ${JSON.stringify(authUser)}`);
+
+    return authUser;
   }
 }

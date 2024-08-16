@@ -1,3 +1,4 @@
+import { AuthUser } from '@app/common/grpc/auth-users';
 import { ClientOauth } from './client-oauth.interface';
 
 export interface TokenInfo {
@@ -5,7 +6,7 @@ export interface TokenInfo {
   accessTokenExpiresAt: Date;
   refreshToken: string;
   refreshTokenExpiresAt: Date;
-  user: any;
+  user: AuthUser;
   userAgentId: string;
   scope?: string | string[];
   client?: ClientOauth;

@@ -1,3 +1,4 @@
+import { i18nValidationMessage } from '@app/common';
 import {
   IsEmail,
   IsNotEmpty,
@@ -6,16 +7,41 @@ import {
 } from 'class-validator';
 
 export class SignupDto {
-  @IsEmail()
+  @IsEmail(
+    {},
+    {
+      message: i18nValidationMessage({
+        property: 'property.Email',
+        message: 'validation.INVALID',
+      }),
+    },
+  )
   email: string;
 
-  @IsStrongPassword()
+  @IsStrongPassword(
+    {},
+    {
+      message: i18nValidationMessage({
+        message: 'validation.INVALID_PASSWORD',
+      }),
+    },
+  )
   password: string;
 
-  @IsNotEmpty()
+  @IsNotEmpty({
+    message: i18nValidationMessage({
+      property: 'property.FirstName',
+      message: 'validation.NOT_EMPTY',
+    }),
+  })
   firstName: string;
 
   @IsOptional()
-  @IsNotEmpty()
+  @IsNotEmpty({
+    message: i18nValidationMessage({
+      property: 'property.LastName',
+      message: 'validation.NOT_EMPTY',
+    }),
+  })
   lastName?: string;
 }

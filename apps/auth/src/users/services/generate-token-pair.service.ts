@@ -21,9 +21,10 @@ export class GenerateTokenPairService {
     const result = this.tokenRedis.transaction(async () => {
       return await this.tokenService.saveUsersToken(
         generateTokenPairDto.userId,
-        generateTokenPairDto.userAgentId,
-        generateTokenPairDto.accessTokenLifetime,
+        generateTokenPairDto.deviceId,
+        generateTokenPairDto.userAgentSource,
         generateTokenPairDto.tokenType,
+        generateTokenPairDto.accessTokenLifetime,
         generateTokenPairDto.refreshTokenLifetime,
       );
     });

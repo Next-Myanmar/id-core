@@ -1,6 +1,17 @@
-import { CurrentUserAgent, TokenPairResponseDto } from '@app/common';
-import { Body, Controller, Logger, Post } from '@nestjs/common';
-import { UserAgentDetails } from '../../../../../libs/common/src/utils/user-agent-utils';
+import {
+  CurrentUserAgent,
+  Public,
+  TokenPairResponseDto,
+  UserAgentDetails,
+} from '@app/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  Post,
+} from '@nestjs/common';
 import { SignupDto } from '../dto/signup.dto';
 import { SignupService } from '../services/signup.service';
 
@@ -11,6 +22,8 @@ export class SignupController {
   constructor(private readonly signupService: SignupService) {}
 
   @Post('signup')
+  @HttpCode(HttpStatus.ACCEPTED)
+  @Public()
   async signup(
     @Body() signupDto: SignupDto,
     @CurrentUserAgent() userAgentDetails: UserAgentDetails,

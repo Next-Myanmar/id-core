@@ -12,6 +12,19 @@
       "stopOnEntry": false,
       "console": "integratedTerminal",
       "cwd": "${workspaceRoot}"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Users",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["start:debug", "users"],
+      "autoAttachChildProcesses": true,
+      "restart": true,
+      "sourceMaps": true,
+      "stopOnEntry": false,
+      "console": "integratedTerminal",
+      "cwd": "${workspaceRoot}"
     }
   ]
 }

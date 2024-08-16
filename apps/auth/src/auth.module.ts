@@ -9,7 +9,7 @@ import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
 import { GrpcMetadataResolver } from 'nestjs-i18n';
 import { TokenRedisModule } from './redis/token-redis.module';
-import { TokenService } from './token/token.service';
+import { TokenModule } from './token/token.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -26,10 +26,11 @@ import { UsersModule } from './users/users.module';
       resolvers: [HeaderResolver, GrpcMetadataResolver],
     }),
     TokenRedisModule,
+    TokenModule,
     HealthModule,
     UsersModule,
   ],
   controllers: [],
-  providers: [TokenService],
+  providers: [],
 })
 export class AuthModule {}

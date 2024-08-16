@@ -1,8 +1,13 @@
-import { RedisService } from '@app/common';
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { getUserAgentDetails, RedisService } from '@app/common';
+import { TokenType } from '@app/common/grpc/auth-users';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import * as crypto from 'crypto';
 import { promisify } from 'util';
-import { TokenType } from '../../../../libs/common/src/grpc/auth-users/auth-users';
 import { TOKEN_REDIS_PROVIDER } from '../redis/token-redis.module';
 import { AccessTokenInfo } from '../types/access-token-info.interface';
 import { KeysInfo } from '../types/keys-info';
@@ -26,10 +31,10 @@ export class TokenService {
 
   getKeysInfoKey(
     userId: string,
-    userAgentId: string,
+    deviceId: string,
     clientId: string = 'unknown',
   ): string {
-    return `user-useragent-client-${userId}-${userAgentId}-${clientId}`;
+    return `user-device-client-${userId}-${deviceId}-${clientId}`;
   }
 
   getAccessTokenKey(accessToken: string): string {
@@ -42,12 +47,12 @@ export class TokenService {
 
   async revokeKeysInfo(
     userId: string,
-    userAgentId: string,
+    deviceId: string,
     clientId: string = 'unknown',
   ): Promise<void> {
     this.logger.debug('revokeKeysInfo Start');
 
-    const key = this.getKeysInfoKey(userId, userAgentId, clientId);
+    const key = this.getKeysInfoKey(userId, deviceId, clientId);
 
     this.logger.debug(`Keys Info Key: ${key}`);
 
@@ -83,14 +88,14 @@ export class TokenService {
 
   async saveKeysInfo(
     userId: string,
-    userAgentId: string,
+    deviceId: string,
     keysInfo: KeysInfo,
     lifetime: number,
     clientId?: string,
   ): Promise<void> {
     this.logger.debug('saveKeysInfo Start');
 
-    const key = this.getKeysInfoKey(userId, userAgentId, clientId);
+    const key = this.getKeysInfoKey(userId, deviceId, clientId);
 
     this.logger.debug(`Keys Info Key: ${key}`);
 
@@ -109,14 +114,18 @@ export class TokenService {
 
   async saveUsersToken(
     userId: string,
-    userAgentId: string,
-    accessTokenLifetime: number,
+    deviceId: string,
+    userAgentSource: string,
     tokenType: TokenType,
+    accessTokenLifetime: number,
     refreshTokenLifetime?: number,
   ): Promise<TokenInfo> {
     this.logger.debug('saveUsersToken Start');
 
-    await this.revokeKeysInfo(userId, userAgentId);
+    await this.revokeKeysInfo(userId, deviceId);
+
+    const userAgentDetails = getUserAgentDetails(userAgentSource);
+    const userAgentId = userAgentDetails.userAgentId;
 
     const accessToken = await this.generateRandomToken();
     const accessTokenExpiresAt = new Date(
@@ -126,7 +135,11 @@ export class TokenService {
     const accessTokenInfo: AccessTokenInfo = {
       accessToken,
       accessTokenExpiresAt,
-      user: { userId, tokenType },
+      user: {
+        userId,
+        deviceId,
+        tokenType,
+      },
       userAgentId,
     };
     this.logger.debug(`Access Token Info: ${JSON.stringify(accessTokenInfo)}`);
@@ -154,7 +167,11 @@ export class TokenService {
       refreshTokenInfo = {
         refreshToken,
         refreshTokenExpiresAt,
-        user: { userId },
+        user: {
+          userId,
+          deviceId,
+          tokenType,
+        },
         userAgentId,
       };
       this.logger.debug(
@@ -175,7 +192,7 @@ export class TokenService {
       lifetime = refreshTokenLifetime;
     }
 
-    await this.saveKeysInfo(userId, userAgentId, keysInfo, lifetime);
+    await this.saveKeysInfo(userId, deviceId, keysInfo, lifetime);
 
     this.logger.debug('saveUsersToken End');
 
@@ -183,5 +200,35 @@ export class TokenService {
       ...accessTokenInfo,
       ...refreshTokenInfo,
     };
+  }
+
+  async authenticateUsers(
+    accessToken: string,
+    userAgentId: string,
+  ): Promise<AccessTokenInfo> {
+    this.logger.debug('authenticateUsers Start');
+
+    const accessTokenKey = this.getAccessTokenKey(accessToken);
+    this.logger.debug(`Access Token Key: ${accessTokenKey}`);
+
+    const value = await this.tokenRedis.get(accessTokenKey);
+    this.logger.debug(`Access Token Info: ${value}`);
+
+    if (!value) {
+      throw new UnauthorizedException();
+    }
+
+    const tokenInfo: AccessTokenInfo = JSON.parse(value);
+
+    if (tokenInfo.userAgentId !== userAgentId) {
+      this.logger.warn(
+        `The useragents are different. Stored UserAgent: ${tokenInfo.userAgentId}, Actual UserAgent: ${userAgentId}`,
+      );
+      throw new UnauthorizedException();
+    }
+
+    this.logger.debug('authenticateUsers End');
+
+    return tokenInfo;
   }
 }
