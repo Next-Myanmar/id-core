@@ -1,0 +1,14 @@
+{
+  "NOT_EMPTY": "{property}ကို ထည့်သွင်းပါ",
+  "NOT_EMPTY_EACH": "{property}တစ်ခုချင်းဆီကို ထည့်သွင်းပါ",
+  "INVALID": "{property}က မှားယွင်းနေပါသည်",
+  "INCORRECT": "{property}က မှားယွင်းနေပါသည်",
+  "INVALID_PASSWORD": "စကားဝှက်က မခိုင်လုံပါ",
+  "INVALID_NEW_PASSWORD": "စကားဝှက်အသစ်သည် အသုံးမပြုင်နိုင်ပါသဖြင့် အခြားတစ်ခုကို ရွေးချယ်ပါ",
+  "POSITIVE": "{property}အပေါင်းကိန်းဖြစ်ရမည်",
+  "EMAIL_EXIST": "ထိုအီးမေးလ်သုံးသူသည် ရှိနှင့်ပြီးဖြစ်သည်",
+  "EMAIL_NOT_EXIST": "ထိုအီးမေးလ်ဖြင့် အသုံးပြုသူ မရှိပါ",
+  "INVALID_EMAIL_CREDENTIAL": "အီးမေးလ်(သို့)စကားဝှက်က မှားယွင်းနေပါသည်",
+  "INVALID_CODE": "ကုဒ်သည် မမှန်ကန်ပါသဖြင့် ထပ်စမ်းကြည့်ပါ (သို့) ကုဒ်အသစ်တစ်ခု တောင်းဆိုပါ။",
+  "INVALID_DEVICES": "There are invalid device(s)"
+}

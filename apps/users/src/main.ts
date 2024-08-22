@@ -22,6 +22,11 @@ async function bootstrap() {
 
   app.enableShutdownHooks();
 
+  app.enableCors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+  });
+
   await app.listen(configService.getOrThrow('HTTP_PORT_USERS'));
 }
 bootstrap();

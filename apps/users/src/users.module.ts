@@ -27,7 +27,7 @@ import { TokenModule } from './token/token.module';
     }),
     LoggerModule,
     I18nModule.forRoot({
-      resolvers: [HeaderResolver],
+      resolvers: [new HeaderResolver(['x-lang'])],
     }),
     VerificationRedisModule,
     UsersNotificationsModule.forRootAsync({

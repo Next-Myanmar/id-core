@@ -23,7 +23,7 @@ import { UsersModule } from './users/users.module';
     }),
     LoggerModule,
     I18nModule.forRoot({
-      resolvers: [HeaderResolver, GrpcMetadataResolver],
+      resolvers: [new HeaderResolver(['x-lang']), GrpcMetadataResolver],
     }),
     TokenRedisModule,
     TokenModule,

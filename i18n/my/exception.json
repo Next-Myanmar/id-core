@@ -1,0 +1,8 @@
+{
+  "INTERNAL_SERVER_ERROR": "Something went wrong",
+  "UNAUTHENTICATED": "Unauthorized",
+  "BAD_REQUEST": "Bad Request",
+  "FORBIDDEN": "Forbidden",
+  "NOT_FOUND": "Not found",
+  "REQUIRED_HTTP_FORM_URL_ENCODED": "Required http form url encoded"
+}

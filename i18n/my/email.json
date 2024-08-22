@@ -1,0 +1,10 @@
+{
+  "users": {
+    "subject": {
+      "activate-user": "Activate Your Account",
+      "welcome-user": "Welcome",
+      "verify-login": "Verify Login",
+      "forgot-password": "Forgot Password"
+    }
+  }
+}

@@ -20,7 +20,7 @@ import { UsersModule } from './users/users.module';
     }),
     LoggerModule,
     I18nModule.forRoot({
-      resolvers: [HeaderResolver],
+      resolvers: [new HeaderResolver(['x-lang'])],
     }),
     HealthModule,
     UsersModule,

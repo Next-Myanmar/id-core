@@ -36,6 +36,7 @@ services:
     environment:
       - REDIS_HOST_VERIFICATION=redis
       - RMQ_HOST_USERS_NOTIFICATIONS=rabbitmq
+      - AUTH_GRPC_URL=auth:5001
     ports:
       - '3002:3002'
     volumes:

@@ -1,0 +1,11 @@
+{
+  "Email": "အီးမေးလ်",
+  "Password": "စကားဝှက်",
+  "CurrentPassword": "လက်ရှိ စကားဝှက်",
+  "FirstName": "အမည်",
+  "LastName": "မျိုးနွယ်အမည်",
+  "DateOfBirth": "မွေးသက္ကရာဇ်",
+  "Gender": "ကျား/မ",
+  "Code": "ကုဒ်",
+  "RefreshToken": "Refresh Token"
+}
