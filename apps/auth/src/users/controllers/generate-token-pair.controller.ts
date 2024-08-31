@@ -1,7 +1,7 @@
 import {
   AUTH_USERS_SERVICE_NAME,
-  GenerateTokenPairResponse,
   METHOD_GENERATE_TOKEN_PAIR,
+  TokenPairResponse,
 } from '@app/common/grpc/auth-users';
 import { Controller, Logger } from '@nestjs/common';
 import { GrpcMethod, Payload } from '@nestjs/microservices';
@@ -21,7 +21,7 @@ export class GenerateTokenPairController {
   @GrpcMethod(AUTH_USERS_SERVICE_NAME, METHOD_GENERATE_TOKEN_PAIR)
   async generateTokenPair(
     @Payload() generateTokenPairDto: GenerateTokenPairDto,
-  ): Promise<GenerateTokenPairResponse> {
+  ): Promise<TokenPairResponse> {
     this.logger.log('Generate Token Pair Start');
 
     const result =
@@ -29,8 +29,10 @@ export class GenerateTokenPairController {
         generateTokenPairDto,
       );
 
-    const data: GenerateTokenPairResponse = {
+    const data: TokenPairResponse = {
       accessToken: result.accessToken,
+      expiresAt: result.accessTokenExpiresAt.getTime().toString(),
+      tokenType: result.user.tokenType,
       refreshToken: result.refreshToken,
     };
 

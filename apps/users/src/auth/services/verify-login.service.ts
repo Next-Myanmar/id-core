@@ -1,11 +1,11 @@
 import { RedisService } from '@app/common';
-import { TokenType } from '@app/common/grpc/auth-users';
+import { TokenPairResponse, TokenType } from '@app/common/grpc/auth-users';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { VERIFICATION_REDIS_PROVIDER } from '../../redis/verification-redis.module';
 import { TokenService } from '../../token/token.service';
 import { AuthInfo } from '../../types/auth-info.interface';
-import { updateDeviceIsLogined, updateLoginHistory } from '../../utils/utils';
+import { updateLoginHistory } from '../../utils/utils';
 import { VerifyLoginDto } from '../dto/verify-login.dto';
 import { VerificationService } from '../verification/verification.service';
 
@@ -24,7 +24,7 @@ export class VerifyLoginService {
   async verifyLogin(
     verifyLoginDto: VerifyLoginDto,
     { authUser, device }: AuthInfo,
-  ) {
+  ): Promise<TokenPairResponse> {
     const key = await this.verification.checkVerificationCode(
       authUser.userId,
       authUser.deviceId,
@@ -34,14 +34,6 @@ export class VerifyLoginService {
     const result = await this.verificationRedis.transaction(async () => {
       return await this.prisma.$transaction(async (prisma) => {
         await this.verificationRedis.delete(key);
-
-        await updateDeviceIsLogined(
-          prisma,
-          authUser.userId,
-          [authUser.deviceId],
-          true,
-          false,
-        );
 
         await updateLoginHistory(prisma, authUser.deviceId);
 

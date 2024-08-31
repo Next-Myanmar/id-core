@@ -1,4 +1,5 @@
 import { I18nExceptionFilter, I18nValidationPipe } from '@app/common';
+import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { Logger } from 'nestjs-pino';
@@ -22,10 +23,23 @@ async function bootstrap() {
 
   app.enableShutdownHooks();
 
-  app.enableCors({
-    origin: 'http://localhost:3000',
-    credentials: true,
-  });
+  const allowedOrigins = (configService.get('ALLOWED_ORIGINS_USERS') || '')
+    .split(',')
+    .map((origin: string) => origin.trim());
+
+  const corsOptions: CorsOptions = {
+    origin: (origin, callback) => {
+      if (allowedOrigins.includes(origin) || !origin) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    methods: 'GET,PUT,PATCH,POST,DELETE',
+    credentials: false,
+  };
+
+  app.enableCors(corsOptions);
 
   await app.listen(configService.getOrThrow('HTTP_PORT_USERS'));
 }

@@ -1,5 +1,9 @@
 import { emitEmail, RedisService } from '@app/common';
-import { AuthUser, TokenType } from '@app/common/grpc/auth-users';
+import {
+  AuthUser,
+  TokenPairResponse,
+  TokenType,
+} from '@app/common/grpc/auth-users';
 import {
   NOTIFICATIONS_USERS_SERVERS_NAME,
   SEND_WELCOME_USER_EMAIL,
@@ -13,7 +17,7 @@ import { TransactionalPrismaClient } from '../../prisma/transactional-prisma-cli
 import { VERIFICATION_REDIS_PROVIDER } from '../../redis/verification-redis.module';
 import { TokenService } from '../../token/token.service';
 import { AuthInfo } from '../../types/auth-info.interface';
-import { updateDeviceIsLogined, updateLoginHistory } from '../../utils/utils';
+import { updateLoginHistory } from '../../utils/utils';
 import { ActivateUserDto } from '../dto/activate-user.dto';
 import { VerificationService } from '../verification/verification.service';
 
@@ -34,7 +38,7 @@ export class ActivateUserService {
   async activateUser(
     activateUserDto: ActivateUserDto,
     { authUser, device }: AuthInfo,
-  ) {
+  ): Promise<TokenPairResponse> {
     const key = await this.verification.checkVerificationCode(
       authUser.userId,
       authUser.deviceId,
@@ -46,13 +50,6 @@ export class ActivateUserService {
         await this.verificationRedis.delete(key);
 
         const user = await this.updateUserToVerified(prisma, authUser);
-
-        await updateDeviceIsLogined(
-          prisma,
-          authUser.userId,
-          [authUser.deviceId],
-          true,
-        );
 
         await updateLoginHistory(prisma, authUser.deviceId);
 

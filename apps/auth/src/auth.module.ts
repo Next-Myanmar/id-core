@@ -3,6 +3,7 @@ import {
   HealthModule,
   I18nModule,
   LoggerModule,
+  ThrottlerModule,
 } from '@app/common';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
@@ -24,6 +25,10 @@ import { UsersModule } from './users/users.module';
     LoggerModule,
     I18nModule.forRoot({
       resolvers: [new HeaderResolver(['x-lang']), GrpcMetadataResolver],
+    }),
+    ThrottlerModule.forRoot({
+      name: 'auth',
+      envFilePath: './apps/auth/.env',
     }),
     TokenRedisModule,
     TokenModule,

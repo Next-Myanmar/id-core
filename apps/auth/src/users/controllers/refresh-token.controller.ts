@@ -1,9 +1,9 @@
 import {
   CurrentUserAgent,
-  TokenPairResponseDto,
   UrlEncodedGuard,
   UserAgentDetails,
 } from '@app/common';
+import { TokenPairResponse } from '@app/common/grpc/auth-users';
 import {
   Body,
   Controller,
@@ -14,6 +14,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { Request } from 'express';
 import { RefreshTokenDto } from '../dto/refresh-token.dto';
 import { RefreshTokenService } from '../services/refresh-token.service';
@@ -26,6 +27,7 @@ export class RefreshTokenController {
 
   constructor(private readonly refreshTokenService: RefreshTokenService) {}
 
+  @Throttle({ short: { limit: 5, ttl: 300 * 1000 } })
   @Post('refresh-token')
   @HttpCode(HttpStatus.OK)
   @UseGuards(UrlEncodedGuard)
@@ -33,7 +35,7 @@ export class RefreshTokenController {
     @Body() refreshTokenDto: RefreshTokenDto,
     @CurrentUserAgent() userAgentDetails: UserAgentDetails,
     @Req() req: Request,
-  ): Promise<TokenPairResponseDto> {
+  ): Promise<TokenPairResponse> {
     this.logger.log('Refresh Token Start');
 
     const result = await this.refreshTokenService.refreshToken(
@@ -46,7 +48,8 @@ export class RefreshTokenController {
 
     return {
       accessToken: result.accessToken,
-      expiresIn: result.accessTokenLifetime,
+      expiresAt: result.accessTokenExpiresAt.getTime().toString(),
+      tokenType: result.user.tokenType,
       refreshToken: result.refreshToken,
     };
   }

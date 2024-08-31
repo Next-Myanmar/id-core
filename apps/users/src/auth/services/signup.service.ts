@@ -5,10 +5,9 @@ import {
   I18nValidationException,
   i18nValidationMessage,
   RedisService,
-  TokenPairResponseDto,
   UserAgentDetails,
 } from '@app/common';
-import { TokenType } from '@app/common/grpc/auth-users';
+import { TokenPairResponse, TokenType } from '@app/common/grpc/auth-users';
 import {
   NOTIFICATIONS_USERS_SERVERS_NAME,
   SEND_ACTIVATE_USER_EMAIL,
@@ -41,7 +40,7 @@ export class SignupService {
   async signup(
     signupDto: SignupDto,
     userAgentDetails: UserAgentDetails,
-  ): Promise<TokenPairResponseDto> {
+  ): Promise<TokenPairResponse> {
     const existingUser = await this.getExistingUser(signupDto);
 
     const result = this.verificationRedis.transaction(async () => {
@@ -61,6 +60,7 @@ export class SignupService {
         const activationCode = await this.verification.createVerificationCode(
           user.id,
           device.id,
+          TokenType.ActivateUser,
         );
 
         const tokenPair = await this.token.generateTokenPair(

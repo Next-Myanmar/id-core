@@ -1,8 +1,9 @@
 {
-  "INTERNAL_SERVER_ERROR": "Something went wrong",
+  "INTERNAL_SERVER_ERROR": "တစ်ခုခုမှားယွင်းသွားပါသဖြင့် နောက်တစ်ကြိမ်ပြန်လည်ကြိုးစားကြည့်ပါ။",
   "UNAUTHENTICATED": "Unauthorized",
   "BAD_REQUEST": "Bad Request",
   "FORBIDDEN": "Forbidden",
   "NOT_FOUND": "Not found",
+  "TOO_MANY_REQUESTS": "Too Many Requests.",
   "REQUIRED_HTTP_FORM_URL_ENCODED": "Required http form url encoded"
 }

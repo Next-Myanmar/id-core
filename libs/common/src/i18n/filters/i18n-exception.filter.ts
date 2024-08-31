@@ -9,6 +9,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { RmqContext } from '@nestjs/microservices';
+import { ThrottlerException } from '@nestjs/throttler';
 import { I18nContext } from 'nestjs-i18n';
 import { throwError } from 'rxjs';
 import { I18nValidationException } from '../exceptions';
@@ -39,6 +40,14 @@ const ErrorDetails = {
       rpc: gRpcStatus.PERMISSION_DENIED,
     },
   },
+  ThrottlerException: {
+    key: 'exception.TOO_MANY_REQUESTS',
+    codes: {
+      http: HttpStatus.TOO_MANY_REQUESTS,
+      graphql: GraphQLErrorCodes.TOO_MANY_REQUESTS,
+      rpc: gRpcStatus.RESOURCE_EXHAUSTED,
+    },
+  },
   unknown: {
     key: 'exception.INTERNAL_SERVER_ERROR',
     codes: {
@@ -49,7 +58,7 @@ const ErrorDetails = {
   },
 };
 
-@Catch(I18nValidationException, UnauthorizedException)
+@Catch(I18nValidationException, UnauthorizedException, ThrottlerException)
 export class I18nExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(I18nExceptionFilter.name);
 
@@ -85,7 +94,7 @@ export class I18nExceptionFilter implements ExceptionFilter {
       case 'graphql': {
         exception.message = message;
 
-        const response = exception.getResponse() as any;
+        const response = exception.getResponse();
         response.message = message;
         response.code = code;
 
@@ -135,6 +144,10 @@ export class I18nExceptionFilter implements ExceptionFilter {
     });
 
     const hostType: string = host.getType();
+
+    this.logger.debug(
+      `Validation Errors: ${JSON.stringify(formattedMessages)}`,
+    );
 
     switch (hostType) {
       case 'http': {

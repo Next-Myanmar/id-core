@@ -4,10 +4,9 @@ import {
   I18nValidationException,
   i18nValidationMessage,
   RedisService,
-  TokenPairResponseDto,
   UserAgentDetails,
 } from '@app/common';
-import { TokenType } from '@app/common/grpc/auth-users';
+import { TokenPairResponse, TokenType } from '@app/common/grpc/auth-users';
 import {
   NOTIFICATIONS_USERS_SERVERS_NAME,
   SEND_VERIFY_LOGIN_EMAIL,
@@ -20,7 +19,6 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { TransactionalPrismaClient } from '../../prisma/transactional-prisma-client';
 import { VERIFICATION_REDIS_PROVIDER } from '../../redis/verification-redis.module';
 import { TokenService } from '../../token/token.service';
-import { updateDeviceIsLogined } from '../../utils/utils';
 import { LoginDto } from '../dto/login.dto';
 import { VerificationService } from '../verification/verification.service';
 
@@ -41,7 +39,7 @@ export class LoginService {
   async login(
     loginDto: LoginDto,
     userAgentDetails: UserAgentDetails,
-  ): Promise<TokenPairResponseDto> {
+  ): Promise<TokenPairResponse> {
     const user = await this.getUser(loginDto);
 
     const result = await this.verificationRedis.transaction(async () => {
@@ -51,9 +49,8 @@ export class LoginService {
         const loginCode = await this.verification.createVerificationCode(
           user.id,
           device.id,
+          TokenType.VerifyLogin,
         );
-
-        await updateDeviceIsLogined(prisma, user.id, [device.id], false);
 
         const tokenPair = await this.token.generateTokenPair(
           user.id,

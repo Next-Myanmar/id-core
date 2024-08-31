@@ -19,15 +19,13 @@ import { updateLoginHistory } from '../utils/utils';
 export class AuthGuard implements CanActivate {
   private readonly logger = new Logger(AuthGuard.name);
 
-  private readonly conditions: Record<
-    TokenType,
-    { isUserVerified?: boolean; isDeviceLogined?: boolean }
-  > = {
-    [TokenType.Normal]: { isUserVerified: true, isDeviceLogined: true },
-    [TokenType.ActivateUser]: { isUserVerified: false, isDeviceLogined: false },
-    [TokenType.VerifyLogin]: { isUserVerified: true, isDeviceLogined: false },
-    [TokenType.UNRECOGNIZED]: {},
-  };
+  private readonly conditions: Record<TokenType, { isUserVerified?: boolean }> =
+    {
+      [TokenType.Normal]: { isUserVerified: true },
+      [TokenType.ActivateUser]: { isUserVerified: false },
+      [TokenType.VerifyLogin]: { isUserVerified: true },
+      [TokenType.UNRECOGNIZED]: undefined,
+    };
 
   constructor(
     private readonly reflector: Reflector,
@@ -80,7 +78,6 @@ export class AuthGuard implements CanActivate {
     const { user, device } = await this.getCurrentUserAndDevice(
       authUser,
       condition.isUserVerified,
-      condition.isDeviceLogined,
     );
 
     const authInfo: AuthInfo = { authUser, user, device };
@@ -97,12 +94,10 @@ export class AuthGuard implements CanActivate {
   private async getCurrentUserAndDevice(
     authUser: AuthUser,
     isUserVerified: boolean,
-    isDeviceLogined: boolean,
   ): Promise<{ user: User; device: Device }> {
     const result = await this.prisma.device.findUnique({
       where: {
         id: authUser.deviceId,
-        isLogined: isDeviceLogined,
         user: { verified: isUserVerified },
       },
       include: { user: true },

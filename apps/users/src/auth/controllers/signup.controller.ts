@@ -1,9 +1,5 @@
-import {
-  CurrentUserAgent,
-  Public,
-  TokenPairResponseDto,
-  UserAgentDetails,
-} from '@app/common';
+import { CurrentUserAgent, Public, UserAgentDetails } from '@app/common';
+import { TokenPairResponse } from '@app/common/grpc/auth-users';
 import {
   Body,
   Controller,
@@ -27,7 +23,7 @@ export class SignupController {
   async signup(
     @Body() signupDto: SignupDto,
     @CurrentUserAgent() userAgentDetails: UserAgentDetails,
-  ): Promise<TokenPairResponseDto> {
+  ): Promise<TokenPairResponse> {
     this.logger.log('Signup Start');
 
     const result = await this.signupService.signup(signupDto, userAgentDetails);

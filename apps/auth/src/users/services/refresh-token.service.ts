@@ -1,4 +1,5 @@
 import { RedisService, UserAgentDetails } from '@app/common';
+import { TokenType } from '@app/common/grpc/auth-users';
 import {
   Inject,
   Injectable,
@@ -40,6 +41,19 @@ export class RefreshTokenService {
       userAgentDetails.userAgentId,
     );
 
+    let refreshTokenLifetime = tokenInfo.refreshTokenLifetime;
+    if (tokenInfo.user.tokenType !== TokenType.Normal) {
+      refreshTokenLifetime = Math.round(
+        (tokenInfo.refreshTokenExpiresAt.getTime() - Date.now()) / 1000,
+      );
+    }
+
+    this.logger.debug(`New Refresh Token Lifetime: ${refreshTokenLifetime}`);
+
+    if (refreshTokenLifetime < tokenInfo.accessTokenLifetime) {
+      throw new UnauthorizedException();
+    }
+
     const result = this.tokenRedis.transaction(async () => {
       return await this.tokenService.saveUsersToken(
         tokenInfo.user.userId,
@@ -47,7 +61,7 @@ export class RefreshTokenService {
         userAgentDetails.userAgentSource,
         tokenInfo.user.tokenType,
         tokenInfo.accessTokenLifetime,
-        tokenInfo.refreshTokenLifetime,
+        refreshTokenLifetime,
       );
     });
 

@@ -1,4 +1,4 @@
-import { getUserAgentDetails, RedisService } from '@app/common';
+import { dateReviver, getUserAgentDetails, RedisService } from '@app/common';
 import { TokenType } from '@app/common/grpc/auth-users';
 import {
   Inject,
@@ -241,7 +241,7 @@ export class TokenService {
       throw new UnauthorizedException();
     }
 
-    const tokenInfo: TokenInfo = JSON.parse(value);
+    const tokenInfo: TokenInfo = JSON.parse(value, dateReviver);
 
     if (tokenInfo.accessToken !== accessToken) {
       this.logger.warn(

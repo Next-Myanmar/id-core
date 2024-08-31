@@ -3,6 +3,7 @@ import {
   HealthModule,
   I18nModule,
   LoggerModule,
+  ThrottlerModule,
 } from '@app/common';
 import { UsersNotificationsModule } from '@app/common/rmq/notifications/users';
 import { Module } from '@nestjs/common';
@@ -28,6 +29,10 @@ import { TokenModule } from './token/token.module';
     LoggerModule,
     I18nModule.forRoot({
       resolvers: [new HeaderResolver(['x-lang'])],
+    }),
+    ThrottlerModule.forRoot({
+      name: 'users',
+      envFilePath: './apps/users/.env',
     }),
     VerificationRedisModule,
     UsersNotificationsModule.forRootAsync({

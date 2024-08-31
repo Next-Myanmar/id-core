@@ -1,8 +1,8 @@
-import { TokenPairResponseDto } from '@app/common';
 import {
   AUTH_USERS_SERVICE_NAME,
   AuthUser,
   AuthUsersServiceClient,
+  TokenPairResponse,
   TokenType,
 } from '@app/common/grpc/auth-users';
 import { status as gRPCStatus } from '@grpc/grpc-js';
@@ -45,7 +45,7 @@ export class TokenService implements OnModuleInit {
     deviceId: string,
     userAgentSource: string,
     tokenType: TokenType,
-  ): Promise<TokenPairResponseDto> {
+  ): Promise<TokenPairResponse> {
     const accessLifetimeKey = AccessTokenLifetimeKeys[tokenType];
     const refreshLifetimeKey = RefreshTokenLifetimeKeys[tokenType];
 
@@ -70,7 +70,7 @@ export class TokenService implements OnModuleInit {
     this.logger.debug(`Token Type: ${tokenType}`);
     this.logger.debug(`Tokens: ${JSON.stringify(tokens)}`);
 
-    return { ...tokens, expiresIn: accessTokenLifetime };
+    return tokens;
   }
 
   async authenticate(

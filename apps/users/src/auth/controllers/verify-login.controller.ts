@@ -1,5 +1,4 @@
-import { TokenPairResponseDto } from '@app/common';
-import { TokenType } from '@app/common/grpc/auth-users';
+import { TokenPairResponse, TokenType } from '@app/common/grpc/auth-users';
 import {
   Body,
   Controller,
@@ -26,7 +25,7 @@ export class VerifyLoginController {
   async verifyLogin(
     @Body() verifyLoginDto: VerifyLoginDto,
     @CurrentAuthInfo() authInfo: AuthInfo,
-  ): Promise<TokenPairResponseDto> {
+  ): Promise<TokenPairResponse> {
     this.logger.log('Verify Login Start');
 
     const result = await this.verifyLoginService.verifyLogin(

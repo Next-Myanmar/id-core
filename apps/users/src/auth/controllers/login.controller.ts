@@ -1,9 +1,5 @@
-import {
-  CurrentUserAgent,
-  Public,
-  TokenPairResponseDto,
-  UserAgentDetails,
-} from '@app/common';
+import { CurrentUserAgent, Public, UserAgentDetails } from '@app/common';
+import { TokenPairResponse } from '@app/common/grpc/auth-users';
 import {
   Body,
   Controller,
@@ -27,7 +23,7 @@ export class LoginController {
   async login(
     @Body() loginDto: LoginDto,
     @CurrentUserAgent() userAgentDetails: UserAgentDetails,
-  ): Promise<TokenPairResponseDto> {
+  ): Promise<TokenPairResponse> {
     this.logger.log('Login Start');
 
     const result = await this.loginService.login(loginDto, userAgentDetails);

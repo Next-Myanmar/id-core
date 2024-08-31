@@ -3,9 +3,11 @@ import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
 import { AuthenticateController } from './controllers/authenticate.controller';
 import { GenerateTokenPairController } from './controllers/generate-token-pair.controller';
+import { LogoutController } from './controllers/logout.controller';
 import { RefreshTokenController } from './controllers/refresh-token.controller';
 import { AuthenticateService } from './services/authenticate.service';
 import { GenerateTokenPairService } from './services/generate-token-pair.service';
+import { LogoutService } from './services/logout.service';
 import { RefreshTokenService } from './services/refresh-token.service';
 
 @Module({
@@ -23,11 +25,13 @@ import { RefreshTokenService } from './services/refresh-token.service';
     GenerateTokenPairController,
     AuthenticateController,
     RefreshTokenController,
+    LogoutController,
   ],
   providers: [
     GenerateTokenPairService,
     AuthenticateService,
     RefreshTokenService,
+    LogoutService,
   ],
 })
 export class UsersModule {}

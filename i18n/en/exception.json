@@ -4,5 +4,6 @@
   "BAD_REQUEST": "Bad Request",
   "FORBIDDEN": "Forbidden",
   "NOT_FOUND": "Not found",
+  "TOO_MANY_REQUESTS": "Too Many Requests.",
   "REQUIRED_HTTP_FORM_URL_ENCODED": "Required http form url encoded"
 }

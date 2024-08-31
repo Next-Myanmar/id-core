@@ -1,6 +1,6 @@
 services:
   mongo1:
-    image: mongo:latest
+    image: mongo:7
     container_name: mongo1
     command: ['--replSet', 'rs0', '--bind_ip_all']
     ports:
@@ -18,7 +18,7 @@ services:
       - id-core-network
 
   mongo2:
-    image: mongo:latest
+    image: mongo:7
     container_name: mongo2
     command: ['--replSet', 'rs0', '--bind_ip_all', '--port', '27018']
     ports:
@@ -30,7 +30,7 @@ services:
       - id-core-network
 
   mongo3:
-    image: mongo:latest
+    image: mongo:7
     container_name: mongo3
     command: ['--replSet', 'rs0', '--bind_ip_all', '--port', '27019']
     ports:
@@ -42,7 +42,7 @@ services:
       - id-core-network
 
   redis:
-    image: redis:latest
+    image: redis:alpine3.20
     container_name: redis
     command: ['redis-server', '--requirepass', '${REDIS_PASSWORD}']
     ports:
@@ -57,7 +57,7 @@ services:
       - id-core-network
 
   rabbitmq:
-    image: rabbitmq:management-alpine
+    image: rabbitmq:3.13.7-management-alpine
     container_name: rabbitmq
     ports:
       - '5672:5672'
