@@ -6,12 +6,7 @@ import {
   RedisService,
 } from '@app/common';
 import { TokenType } from '@app/common/grpc/auth-users';
-import {
-  Inject,
-  Injectable,
-  Logger,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { VERIFICATION_REDIS_PROVIDER } from '../../redis/verification-redis.module';
 import { RefreshTokenLifetimeKeys } from '../constants/constants';
@@ -39,6 +34,8 @@ export class VerificationService {
 
     const hashedVerificationCode = await hash(verificationCode.toString());
 
+    this.logger.debug(`Generated verification code: ${verificationCode}`);
+
     return { verificationCode, hashedVerificationCode };
   }
 
@@ -49,10 +46,11 @@ export class VerificationService {
   ): Promise<number> {
     this.logger.debug('createVerificationCode Start');
 
+    const key = this.getVerificationKey(userId, deviceId);
+    this.logger.debug(`Verification code key: ${key}`);
+
     const { verificationCode, hashedVerificationCode } =
       await this.generateVerificationCode();
-
-    const key = this.getVerificationKey(userId, deviceId);
 
     const verificationInfo: VerificationInfo = {
       code: hashedVerificationCode,
@@ -70,8 +68,6 @@ export class VerificationService {
       lifetime,
     );
 
-    this.logger.debug(`Verification Code: ${verificationCode}`);
-
     this.logger.debug('createVerificationCode End');
 
     return verificationCode;
@@ -85,16 +81,29 @@ export class VerificationService {
     this.logger.debug('checkVerificationCode Start');
 
     const key = this.getVerificationKey(userId, deviceId);
+    this.logger.debug(`Verification code key: ${key}`);
 
     const value = await this.verificationRedis.get(key);
+    this.logger.debug(`Verification code info: ${JSON.stringify(value)}`);
 
     if (!value) {
-      this.logger.debug('The verification code is expired');
-
+      this.logger.debug('Verification code is expired');
       this.throwInvalidVerificationCodeValidationError();
     }
 
     const verificationInfo: VerificationInfo = JSON.parse(value);
+
+    const allowCodeAttempts = Number(
+      this.config.getOrThrow<number>('ALLOW_CODE_ATTEMPTS'),
+    );
+
+    this.logger.debug(`Allow Code Attempts: ${allowCodeAttempts}`);
+
+    if (verificationInfo.retryCount >= allowCodeAttempts) {
+      this.logger.debug('Exceeds allow code attempts');
+
+      this.throwInvalidVerificationCodeValidationError();
+    }
 
     const isEqual = await compareHash(
       verificationCode.toString(),
@@ -102,21 +111,16 @@ export class VerificationService {
     );
 
     if (!isEqual) {
-      const allowCodeAttempts = Number(
-        this.config.getOrThrow<number>('ALLOW_CODE_ATTEMPTS'),
-      );
       verificationInfo.retryCount = verificationInfo.retryCount + 1;
 
-      this.logger.debug(`Allow Code Attempts: ${allowCodeAttempts}`);
+      await this.verificationRedis.update(
+        key,
+        JSON.stringify(verificationInfo),
+      );
 
-      if (verificationInfo.retryCount < allowCodeAttempts) {
-        await this.verificationRedis.update(
-          key,
-          JSON.stringify(verificationInfo),
-        );
-      }
-
-      this.logger.debug(`Retry Count: ${verificationInfo.retryCount}`);
+      this.logger.debug(
+        `Updated verification code info: ${JSON.stringify(verificationInfo)}`,
+      );
 
       this.throwInvalidVerificationCodeValidationError();
     }
@@ -129,16 +133,19 @@ export class VerificationService {
   async checkResendCodeAvailable(
     userId: string,
     deviceId: string,
-  ): Promise<{ isAvailable: boolean; code: number }> {
+  ): Promise<{ isAvailable: boolean; code?: number }> {
     this.logger.debug('checkResendCodeAvailable Start');
 
     const key = this.getVerificationKey(userId, deviceId);
+    this.logger.debug(`Verification code key: ${key}`);
 
     const value = await this.verificationRedis.get(key);
+    this.logger.debug(`Verification code info: ${JSON.stringify(value)}`);
 
     if (!value) {
       this.logger.debug('The verification code is expired');
-      throw new UnauthorizedException();
+
+      return { isAvailable: false };
     }
 
     const verificationInfo: VerificationInfo = JSON.parse(value);
@@ -156,7 +163,9 @@ export class VerificationService {
     const isAvailable =
       verificationInfo.resendCodeCount < allowResendCodeAttempts;
 
-    let code: number;
+    this.logger.debug(`Send Code Available: ${isAvailable}`);
+
+    let code: number = null;
     if (isAvailable) {
       const { verificationCode, hashedVerificationCode } =
         await this.generateVerificationCode();
@@ -164,16 +173,19 @@ export class VerificationService {
       verificationInfo.code = hashedVerificationCode;
       verificationInfo.retryCount = 0;
 
-      this.logger.debug(
-        `Updated Verification Code Info: ${JSON.stringify(verificationInfo)}`,
-      );
-
       await this.verificationRedis.update(
         key,
         JSON.stringify(verificationInfo),
       );
 
+      this.logger.debug(
+        `Updated verification code info: ${JSON.stringify(verificationInfo)}`,
+      );
+
       code = verificationCode;
+    } else {
+      await this.verificationRedis.delete(key);
+      this.logger.debug(`Deleted verification code: ${key}`);
     }
 
     this.logger.debug('checkResendCodeAvailable End');

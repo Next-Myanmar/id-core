@@ -10,6 +10,7 @@ services:
       - ./auth/.env
     environment:
       - REDIS_HOST_TOKEN=redis
+      - THROTTLER_REDIS_HOST=redis
     ports:
       - '3001:3001'
       - '5001:5001'
@@ -37,6 +38,7 @@ services:
       - REDIS_HOST_VERIFICATION=redis
       - RMQ_HOST_USERS_NOTIFICATIONS=rabbitmq
       - AUTH_GRPC_URL=auth:5001
+      - THROTTLER_REDIS_HOST=redis
     ports:
       - '3002:3002'
     volumes:

@@ -1,13 +1,11 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
-import {
-  ThrottlerModule as BaseThrottlerModule,
-  ThrottlerGuard,
-} from '@nestjs/throttler';
+import { ThrottlerModule as BaseThrottlerModule } from '@nestjs/throttler';
 import { RedisOptions } from 'ioredis';
 import * as Joi from 'joi';
 import { RedisThrottlerStorage } from './redis-throttler.storage';
+import { ThrottlerGuard } from './throttler.guard';
 
 @Module({
   imports: [],
