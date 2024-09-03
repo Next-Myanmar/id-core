@@ -1,4 +1,5 @@
 import {
+  GraphQLModule,
   HeaderResolver,
   HealthModule,
   I18nModule,
@@ -13,6 +14,7 @@ import * as Joi from 'joi';
 import { AuthModule } from './auth/auth.module';
 import { AuthGuard } from './guards/auth.guard';
 import { PrismaModule } from './prisma/prisma.module';
+import { ProfileModule } from './profile/profile.module';
 import { VerificationRedisModule } from './redis/verification-redis.module';
 import { TokenModule } from './token/token.module';
 
@@ -34,6 +36,7 @@ import { TokenModule } from './token/token.module';
       name: 'users',
       envFilePath: './apps/users/.env',
     }),
+    GraphQLModule.forRoot(),
     VerificationRedisModule,
     UsersNotificationsModule.forRootAsync({
       envFilePath: './apps/users/.env',
@@ -42,6 +45,7 @@ import { TokenModule } from './token/token.module';
     TokenModule,
     HealthModule,
     AuthModule,
+    ProfileModule,
   ],
   controllers: [],
   providers: [

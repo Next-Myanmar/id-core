@@ -19,7 +19,7 @@ import { Request } from 'express';
 import { RefreshTokenDto } from '../dto/refresh-token.dto';
 import { RefreshTokenService } from '../services/refresh-token.service';
 
-@Controller('api')
+@Controller('api/users')
 export class RefreshTokenController {
   private readonly logger = new Logger(
     `Users (API) - ${RefreshTokenController.name}`,

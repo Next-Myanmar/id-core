@@ -214,8 +214,6 @@ export class TokenService {
         `The useragents are different. Stored UserAgent: ${tokenInfo.userAgentId}, Actual UserAgent: ${userAgentId}`,
       );
 
-      await this.revokeKeysInfo(tokenInfo.user.userId, tokenInfo.user.deviceId);
-
       throw new UnauthorizedException();
     }
 

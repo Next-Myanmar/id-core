@@ -9,6 +9,7 @@ import { AuthenticateService } from './services/authenticate.service';
 import { GenerateTokenPairService } from './services/generate-token-pair.service';
 import { LogoutService } from './services/logout.service';
 import { RefreshTokenService } from './services/refresh-token.service';
+import { TestUsersModule } from './test-users.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { RefreshTokenService } from './services/refresh-token.service';
         GRPC_PORT_USERS: Joi.number().required(),
       }),
     }),
+    ...(process.env.NODE_ENV === 'development' ? [TestUsersModule] : []),
   ],
   controllers: [
     GenerateTokenPairController,

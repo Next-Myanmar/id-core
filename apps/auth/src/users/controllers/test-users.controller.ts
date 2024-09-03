@@ -1,5 +1,6 @@
-import { CurrentUserAgent, UserAgentDetails } from '@app/common';
+import { getUserAgentDetails } from '@app/common';
 import {
+  Body,
   Controller,
   HttpCode,
   HttpStatus,
@@ -10,24 +11,23 @@ import {
 import { Request } from 'express';
 import { LogoutService } from '../services/logout.service';
 
-@Controller('api/users')
-export class LogoutController {
+@Controller('api/users/test')
+export class TestUsersController {
   private readonly logger = new Logger(
-    `Users (API) - ${LogoutController.name}`,
+    `Users (Test API) - ${TestUsersController.name}`,
   );
 
   constructor(private readonly logoutService: LogoutService) {}
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  async logout(
-    @CurrentUserAgent() userAgentDetails: UserAgentDetails,
-    @Req() req: Request,
-  ): Promise<void> {
-    this.logger.log('Logout Start');
+  async logout(@Req() req: Request, @Body() { userAgent }: any): Promise<void> {
+    this.logger.log('Test Logout Start');
+
+    const userAgentDetails = getUserAgentDetails(userAgent);
 
     await this.logoutService.logout(req, userAgentDetails);
 
-    this.logger.log('Logout End');
+    this.logger.log('Test Logout End');
   }
 }
