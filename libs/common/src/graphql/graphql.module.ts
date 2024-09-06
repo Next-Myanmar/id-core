@@ -8,6 +8,7 @@ import {
   GqlModuleOptions,
 } from '@nestjs/graphql';
 import { I18nContext } from 'nestjs-i18n';
+import { DateScalar } from './date.scalar';
 import { GraphQLErrorCodes } from './graphql-error-codes';
 
 @Module({})
@@ -61,6 +62,7 @@ export class GraphQLModule {
           },
         }),
       ],
+      providers: [DateScalar],
     };
   }
 }

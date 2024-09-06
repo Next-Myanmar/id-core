@@ -13,7 +13,7 @@ export class UpdateProfileResolver {
   constructor(private readonly updateProfileService: UpdateProfileService) {}
 
   @Mutation(() => UserEntity)
-  async updateUser(
+  async updateProfile(
     @Args('updateProfileDto') updateProfileDto: UpdateProfileDto,
     @CurrentAuthInfo() { user }: AuthInfo,
   ): Promise<UserEntity> {
