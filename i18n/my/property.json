@@ -7,5 +7,6 @@
   "DateOfBirth": "မွေးသက္ကရာဇ်",
   "Gender": "ကျား/မ",
   "Code": "ကုဒ်",
-  "RefreshToken": "Refresh Token"
+  "RefreshToken": "Refresh Token",
+  "DeviceId": "Device Id "
 }

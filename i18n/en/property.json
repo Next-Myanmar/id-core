@@ -7,5 +7,6 @@
   "DateOfBirth": "Date of birth",
   "Gender": "Gender",
   "Code": "Code",
-  "RefreshToken": "Refresh Token"
+  "RefreshToken": "Refresh Token",
+  "DeviceId": "Device Id"
 }

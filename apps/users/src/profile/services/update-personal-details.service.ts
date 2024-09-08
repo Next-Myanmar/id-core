@@ -1,23 +1,23 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { User } from '../../prisma/generated';
 import { PrismaService } from '../../prisma/prisma.service';
-import { UpdateProfileDto } from '../dto/update-profile.dto';
-import { UserEntity } from '../entities/user.entity';
+import { UpdatePersonalDetailsDto } from '../dto/update-personal-details.dto';
+import { PersonalDetailsEntity } from '../entities/personal-details.entity';
 import { convertToUserEntity } from '../utils/entity-utils';
 
 @Injectable()
-export class UpdateProfileService {
-  private readonly logger = new Logger(UpdateProfileService.name);
+export class UpdatePersonalDetailsService {
+  private readonly logger = new Logger(UpdatePersonalDetailsService.name);
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async updateProfile(
+  async updatePersonalDetails(
     user: User,
-    updateProfileDto: UpdateProfileDto,
-  ): Promise<UserEntity> {
+    updatePersonalDetailsDto: UpdatePersonalDetailsDto,
+  ): Promise<PersonalDetailsEntity> {
     const updatedUser = await this.prisma.user.update({
       where: { id: user.id },
-      data: updateProfileDto,
+      data: updatePersonalDetailsDto,
     });
 
     return convertToUserEntity(updatedUser);

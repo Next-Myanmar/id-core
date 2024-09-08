@@ -10,5 +10,8 @@
   "EMAIL_NOT_EXIST": "ထိုအီးမေးလ်ဖြင့် အသုံးပြုသူ မရှိပါ",
   "INVALID_EMAIL_CREDENTIAL": "အီးမေးလ်(သို့)စကားဝှက်က မှားယွင်းနေပါသည်",
   "INVALID_CODE": "ကုဒ်က မှားယွင်းနေပါသဖြင့် ထပ်စမ်းကြည့်ပါ (သို့) ကုဒ်အသစ်တစ်ခု တောင်းဆိုပါ။",
-  "INVALID_DEVICES": "There are invalid device(s)"
+  "INVALID_DEVICES": "There are invalid device(s)",
+  "FUTURE_DATE": "{property}က အနာဂတ်ဖြစ်လို့မရပါ",
+  "MIN_DATE": "{property}က {minDate}နောက် ဖြစ်ရပါမည်",
+  "BOOLEAN": "{property}က true (သို့) false ဖြစ်ရပါမည်"
 }

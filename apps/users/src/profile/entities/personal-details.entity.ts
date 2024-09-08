@@ -2,7 +2,7 @@ import { Field, ObjectType } from '@nestjs/graphql';
 import { Gender } from '../../enums/gender.enum';
 
 @ObjectType()
-export class UserEntity {
+export class PersonalDetailsEntity {
   @Field()
   email: string;
 

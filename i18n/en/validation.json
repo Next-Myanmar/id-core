@@ -10,5 +10,8 @@
   "EMAIL_NOT_EXIST": "The user with email not exists",
   "INVALID_EMAIL_CREDENTIAL": "Email or Password incorrect",
   "INVALID_CODE": "Code is invalid. Please try again or request a new code",
-  "INVALID_DEVICES": "There are invalid device(s)"
+  "INVALID_DEVICES": "There are invalid device(s)",
+  "FUTURE_DATE": "{property} cannot be in the future",
+  "MIN_DATE": "{property} must not be earlier than {minDate}",
+  "BOOLEAN": "The value of {property} must be either true or false"
 }

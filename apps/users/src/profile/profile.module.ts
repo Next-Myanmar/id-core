@@ -1,10 +1,16 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
-import { GetProfileResolver } from './resolvers/get-profile.resolver';
-import { UpdateProfileResolver } from './resolvers/update-profile.resolver';
-import { GetProfileService } from './services/get-profile.service';
-import { UpdateProfileService } from './services/update-profile.service';
+import { ChangePasswordResolver } from './resolvers/change-password.resolver';
+import { GetDeviceResolver } from './resolvers/get-device.resolver';
+import { GetDevicesResolver } from './resolvers/get-devices.resolver';
+import { GetPersonalDetailsResolver } from './resolvers/get-personal-details.resolver';
+import { UpdatePersonalDetailsResolver } from './resolvers/update-personal-details.resolver';
+import { ChangePasswordService } from './services/chage-password.service';
+import { GetDeviceService } from './services/get-device.service';
+import { GetDevicesService } from './services/get-devices.service';
+import { GetPersonalDetailsService } from './services/get-personal-details.service';
+import { UpdatePersonalDetailsService } from './services/update-personal-details.service';
 
 @Module({
   imports: [
@@ -14,11 +20,18 @@ import { UpdateProfileService } from './services/update-profile.service';
       validationSchema: Joi.object({}),
     }),
   ],
+  controllers: [],
   providers: [
-    GetProfileService,
-    GetProfileResolver,
-    UpdateProfileService,
-    UpdateProfileResolver,
+    GetPersonalDetailsService,
+    GetPersonalDetailsResolver,
+    UpdatePersonalDetailsService,
+    UpdatePersonalDetailsResolver,
+    ChangePasswordService,
+    ChangePasswordResolver,
+    GetDevicesService,
+    GetDevicesResolver,
+    GetDeviceService,
+    GetDeviceResolver,
   ],
 })
 export class ProfileModule {}

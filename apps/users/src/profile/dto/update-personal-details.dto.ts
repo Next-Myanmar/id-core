@@ -1,11 +1,17 @@
-import { i18nValidationMessage } from '@app/common';
+import { i18nValidationMessage, IsMinDate, IsNotFutureDate } from '@app/common';
 import { Field, InputType } from '@nestjs/graphql';
 import { Transform } from 'class-transformer';
 import { IsDate, IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
 import { Gender } from '../../enums/gender.enum';
 
+const minDate = () => {
+  const date = new Date();
+  date.setFullYear(date.getFullYear() - 200);
+  return date;
+};
+
 @InputType()
-export class UpdateProfileDto {
+export class UpdatePersonalDetailsDto {
   @Field({ nullable: true })
   @IsOptional()
   @Transform(({ value }) => (value === null ? '' : value))
@@ -29,6 +35,19 @@ export class UpdateProfileDto {
 
   @Field(() => Date, { nullable: true })
   @IsOptional()
+  @IsNotFutureDate({
+    message: i18nValidationMessage({
+      property: 'property.DateOfBirth',
+      message: 'validation.FUTURE_DATE',
+    }),
+  })
+  @IsMinDate(minDate(), {
+    message: i18nValidationMessage({
+      property: 'property.DateOfBirth',
+      message: 'validation.MIN_DATE',
+      args: { minDate: minDate().toISOString().split('T')[0] },
+    }),
+  })
   @IsDate({
     message: i18nValidationMessage({
       property: 'property.DateOfBirth',

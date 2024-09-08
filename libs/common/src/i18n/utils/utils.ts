@@ -5,11 +5,22 @@ import { I18nValidationError } from '../interfaces';
 export function i18nValidationMessage({
   property,
   message,
+  args,
 }: {
   property?: string;
   message: string;
+  args?:
+    | (
+        | {
+            [k: string]: any;
+          }
+        | string
+      )[]
+    | {
+        [k: string]: any;
+      };
 }): string {
-  return JSON.stringify({ property, message });
+  return JSON.stringify({ property, message, args });
 }
 
 export function i18nErrorMessage({
@@ -56,14 +67,14 @@ export function formatI18nErrors(
     let messageTranslation = undefined;
     if (error.message) {
       try {
-        const { property, message } = JSON.parse(error.message);
+        const { property, message, args } = JSON.parse(error.message);
 
         const propertyTranslation = property
           ? i18n.translate(property, { lang })
           : undefined;
         messageTranslation = i18n.translate(message, {
           lang,
-          args: { property: propertyTranslation },
+          args: { ...args, property: propertyTranslation },
         });
       } catch {
         messageTranslation = error.message;
