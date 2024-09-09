@@ -11,8 +11,8 @@ import { ActivateUserService } from './services/activate-user.service';
 import { LoginService } from './services/login.service';
 import { ResendCodeService } from './services/resend-code.service';
 import { SignupService } from './services/signup.service';
+import { VerificationService } from './services/verification.service';
 import { VerifyLoginService } from './services/verify-login.service';
-import { VerificationService } from './verification/verification.service';
 
 @Module({
   imports: [

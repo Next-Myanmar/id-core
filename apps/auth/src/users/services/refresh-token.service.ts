@@ -1,27 +1,17 @@
-import { RedisService, UserAgentDetails } from '@app/common';
+import { UserAgentDetails } from '@app/common';
 import { TokenType } from '@app/common/grpc/auth-users';
-import {
-  Inject,
-  Injectable,
-  Logger,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { Request } from 'express';
-import { TOKEN_REDIS_PROVIDER } from '../../redis/token-redis.module';
-import { TokenService } from '../../token/token.service';
-import { TokenInfo } from '../../types/token-info.interface';
 import { getTokenFromAuthorization } from '../../utils/utils';
 import { RefreshTokenDto } from '../dto/refresh-token.dto';
+import { TokenInfo } from '../types/token-info.interface';
+import { TokenService } from './token.service';
 
 @Injectable()
 export class RefreshTokenService {
   private readonly logger = new Logger(RefreshTokenService.name);
 
-  constructor(
-    @Inject(TOKEN_REDIS_PROVIDER)
-    private readonly tokenRedis: RedisService,
-    private readonly tokenService: TokenService,
-  ) {}
+  constructor(private readonly tokenService: TokenService) {}
 
   async refreshToken(
     req: Request,
@@ -35,7 +25,7 @@ export class RefreshTokenService {
     const accessToken = getTokenFromAuthorization(authorization);
     this.logger.debug(`AccessToken: ${accessToken}`);
 
-    const tokenInfo = await this.tokenService.checkRefreshTokenUsers(
+    const tokenInfo = await this.tokenService.checkRefreshToken(
       refreshTokenDto.refreshToken,
       accessToken,
       userAgentDetails.userAgentId,
@@ -54,8 +44,8 @@ export class RefreshTokenService {
       throw new UnauthorizedException();
     }
 
-    const result = this.tokenRedis.transaction(async () => {
-      return await this.tokenService.saveUsersToken(
+    const result = await this.tokenService.transaction(async () => {
+      return await this.tokenService.saveTokens(
         tokenInfo.user.userId,
         tokenInfo.user.deviceId,
         userAgentDetails.userAgentSource,

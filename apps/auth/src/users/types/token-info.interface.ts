@@ -1,5 +1,4 @@
 import { AuthUser } from '@app/common/grpc/auth-users';
-import { ClientOauth } from './client-oauth.interface';
 
 export interface TokenInfo {
   accessToken: string;
@@ -10,6 +9,4 @@ export interface TokenInfo {
   refreshTokenLifetime?: number;
   user: AuthUser;
   userAgentId: string;
-  scope?: string | string[];
-  client?: ClientOauth;
 }

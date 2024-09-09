@@ -1,13 +1,11 @@
-import { RedisService } from '@app/common';
 import { TokenPairResponse, TokenType } from '@app/common/grpc/auth-users';
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { VERIFICATION_REDIS_PROVIDER } from '../../redis/verification-redis.module';
 import { TokenService } from '../../token/token.service';
 import { AuthInfo } from '../../types/auth-info.interface';
 import { updateLoginHistory } from '../../utils/utils';
 import { VerifyLoginDto } from '../dto/verify-login.dto';
-import { VerificationService } from '../verification/verification.service';
+import { VerificationService } from './verification.service';
 
 @Injectable()
 export class VerifyLoginService {
@@ -16,8 +14,6 @@ export class VerifyLoginService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly verification: VerificationService,
-    @Inject(VERIFICATION_REDIS_PROVIDER)
-    private readonly verificationRedis: RedisService,
     private readonly token: TokenService,
   ) {}
 
@@ -31,9 +27,9 @@ export class VerifyLoginService {
       verifyLoginDto.code,
     );
 
-    const result = await this.verificationRedis.transaction(async () => {
+    const result = await this.verification.transaction(async () => {
       return await this.prisma.$transaction(async (prisma) => {
-        await this.verificationRedis.delete(key);
+        await this.verification.delete(key);
 
         await updateLoginHistory(prisma, authUser.deviceId);
 

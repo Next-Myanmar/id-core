@@ -5,7 +5,11 @@ package auth.users;
 service AuthUsersService {
     rpc generateTokenPair (GenerateTokenPairRequest) returns (TokenPairResponse);
     rpc authenticate (AuthenticateRequest) returns (AuthUser);
+    rpc checkAvailableTokens(GeneratedTokens) returns (GeneratedTokens);
+    rpc makeLogout (GeneratedTokens) returns (Empty);
 }
+
+message Empty {}
 
 enum TokenType {
     Normal = 0;
@@ -38,4 +42,14 @@ message AuthUser {
     string userId = 1;
     string deviceId = 2;
     TokenType tokenType = 3;
+}
+
+message GeneratedToken {
+    string userId = 1;
+    string deviceId = 2;
+    TokenType tokenType = 3;
+}
+
+message GeneratedTokens {
+    repeated GeneratedToken generatedTokens = 1;
 }

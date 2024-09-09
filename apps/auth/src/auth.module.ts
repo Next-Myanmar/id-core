@@ -9,8 +9,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
 import { GrpcMetadataResolver } from 'nestjs-i18n';
-import { TokenRedisModule } from './redis/token-redis.module';
-import { TokenModule } from './token/token.module';
+import { UsersTokenRedisModule } from './redis/users-token-redis.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -30,8 +29,7 @@ import { UsersModule } from './users/users.module';
       name: 'auth',
       envFilePath: './apps/auth/.env',
     }),
-    TokenRedisModule,
-    TokenModule,
+    UsersTokenRedisModule,
     HealthModule,
     UsersModule,
   ],

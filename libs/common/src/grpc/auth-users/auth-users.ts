@@ -17,6 +17,9 @@ export enum TokenType {
   UNRECOGNIZED = -1,
 }
 
+export interface Empty {
+}
+
 export interface GenerateTokenPairRequest {
   userId: string;
   deviceId: string;
@@ -44,12 +47,26 @@ export interface AuthUser {
   tokenType: TokenType;
 }
 
+export interface GeneratedToken {
+  userId: string;
+  deviceId: string;
+  tokenType: TokenType;
+}
+
+export interface GeneratedTokens {
+  generatedTokens: GeneratedToken[];
+}
+
 export const AUTH_USERS_PACKAGE_NAME = "auth.users";
 
 export interface AuthUsersServiceClient {
   generateTokenPair(request: GenerateTokenPairRequest): Observable<TokenPairResponse>;
 
   authenticate(request: AuthenticateRequest): Observable<AuthUser>;
+
+  checkAvailableTokens(request: GeneratedTokens): Observable<GeneratedTokens>;
+
+  makeLogout(request: GeneratedTokens): Observable<Empty>;
 }
 
 export interface AuthUsersServiceController {
@@ -58,11 +75,17 @@ export interface AuthUsersServiceController {
   ): Promise<TokenPairResponse> | Observable<TokenPairResponse> | TokenPairResponse;
 
   authenticate(request: AuthenticateRequest): Promise<AuthUser> | Observable<AuthUser> | AuthUser;
+
+  checkAvailableTokens(
+    request: GeneratedTokens,
+  ): Promise<GeneratedTokens> | Observable<GeneratedTokens> | GeneratedTokens;
+
+  makeLogout(request: GeneratedTokens): Promise<Empty> | Observable<Empty> | Empty;
 }
 
 export function AuthUsersServiceControllerMethods() {
   return function (constructor: Function) {
-    const grpcMethods: string[] = ["generateTokenPair", "authenticate"];
+    const grpcMethods: string[] = ["generateTokenPair", "authenticate", "checkAvailableTokens", "makeLogout"];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
       GrpcMethod("AuthUsersService", method)(constructor.prototype[method], method, descriptor);

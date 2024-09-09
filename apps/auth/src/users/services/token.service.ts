@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { promisify } from 'util';
-import { TOKEN_REDIS_PROVIDER } from '../redis/token-redis.module';
+import { USERS_TOKEN_REDIS_PROVIDER } from '../../redis/users-token-redis.module';
 import { KeysInfo } from '../types/keys-info';
 import { TokenInfo } from '../types/token-info.interface';
 
@@ -17,7 +17,7 @@ export class TokenService {
   private readonly logger = new Logger(TokenService.name);
 
   constructor(
-    @Inject(TOKEN_REDIS_PROVIDER)
+    @Inject(USERS_TOKEN_REDIS_PROVIDER)
     private readonly tokenRedis: RedisService,
   ) {}
 
@@ -27,12 +27,8 @@ export class TokenService {
     return crypto.createHash('sha1').update(buffer).digest('hex');
   }
 
-  getKeysInfoKey(
-    userId: string,
-    deviceId: string,
-    clientId: string = 'unknown',
-  ): string {
-    return `user-device-client-${userId}-${deviceId}-${clientId}`;
+  getKeysInfoKey(userId: string, deviceId: string): string {
+    return `user-device-client-${userId}-${deviceId}`;
   }
 
   getAccessTokenKey(accessToken: string): string {
@@ -43,14 +39,34 @@ export class TokenService {
     return `refresh-token-${refreshToken}`;
   }
 
-  async revokeKeysInfo(
-    userId: string,
-    deviceId: string,
-    clientId: string = 'unknown',
-  ): Promise<void> {
+  async transaction<T>(callback: () => Promise<T>): Promise<T> {
+    const result = await this.tokenRedis.transaction(async () => {
+      return await callback();
+    });
+
+    return result;
+  }
+
+  async deleteKeysInfo(key: string, keysInfo: KeysInfo): Promise<void> {
+    this.logger.debug('deleteKeysInfo Start');
+
+    await this.tokenRedis.delete(keysInfo.accessTokenKey);
+    this.logger.debug(`Deleted accessTokenKey: ${keysInfo.accessTokenKey}`);
+
+    if (keysInfo.refreshTokenKey) {
+      await this.tokenRedis.delete(keysInfo.refreshTokenKey);
+      this.logger.debug(`Deleted refreshTokenKey: ${keysInfo.refreshTokenKey}`);
+    }
+
+    await this.tokenRedis.delete(key);
+
+    this.logger.debug('deleteKeysInfo Start');
+  }
+
+  async revokeKeysInfo(userId: string, deviceId: string): Promise<void> {
     this.logger.debug('revokeKeysInfo Start');
 
-    const key = this.getKeysInfoKey(userId, deviceId, clientId);
+    const key = this.getKeysInfoKey(userId, deviceId);
 
     this.logger.debug(`Keys Info Key: ${key}`);
 
@@ -61,24 +77,7 @@ export class TokenService {
     if (value) {
       const data: KeysInfo = JSON.parse(value);
 
-      if (data.authorizationCodeKey) {
-        await this.tokenRedis.delete(data.authorizationCodeKey);
-        this.logger.debug(
-          `Deleted authorizationCodeKey: ${data.authorizationCodeKey}`,
-        );
-      }
-
-      if (data.accessTokenKey) {
-        await this.tokenRedis.delete(data.accessTokenKey);
-        this.logger.debug(`Deleted accessTokenKey: ${data.accessTokenKey}`);
-      }
-
-      if (data.refreshTokenKey) {
-        await this.tokenRedis.delete(data.refreshTokenKey);
-        this.logger.debug(`Deleted refreshTokenKey: ${data.refreshTokenKey}`);
-      }
-
-      await this.tokenRedis.delete(key);
+      await this.deleteKeysInfo(key, data);
     }
 
     this.logger.debug('revokeKeysInfo End');
@@ -89,11 +88,10 @@ export class TokenService {
     deviceId: string,
     keysInfo: KeysInfo,
     lifetime: number,
-    clientId?: string,
   ): Promise<void> {
     this.logger.debug('saveKeysInfo Start');
 
-    const key = this.getKeysInfoKey(userId, deviceId, clientId);
+    const key = this.getKeysInfoKey(userId, deviceId);
 
     this.logger.debug(`Keys Info Key: ${key}`);
 
@@ -110,7 +108,7 @@ export class TokenService {
     this.logger.debug('saveKeysInfo End');
   }
 
-  async saveUsersToken(
+  async saveTokens(
     userId: string,
     deviceId: string,
     userAgentSource: string,
@@ -118,7 +116,7 @@ export class TokenService {
     accessTokenLifetime: number,
     refreshTokenLifetime?: number,
   ): Promise<TokenInfo> {
-    this.logger.debug('saveUsersToken Start');
+    this.logger.debug('saveTokens Start');
 
     await this.revokeKeysInfo(userId, deviceId);
 
@@ -153,7 +151,7 @@ export class TokenService {
       accessTokenLifetime,
     );
 
-    let keysInfo: KeysInfo = { accessTokenKey };
+    let keysInfo: KeysInfo = { accessTokenKey, tokenType };
     let lifetime = accessTokenLifetime;
 
     if (refreshTokenLifetime) {
@@ -186,16 +184,16 @@ export class TokenService {
 
     await this.saveKeysInfo(userId, deviceId, keysInfo, lifetime);
 
-    this.logger.debug('saveUsersToken End');
+    this.logger.debug('saveTokens End');
 
     return tokenInfo;
   }
 
-  async authenticateUsers(
+  async authenticate(
     accessToken: string,
     userAgentId: string,
   ): Promise<TokenInfo> {
-    this.logger.debug('authenticateUsers Start');
+    this.logger.debug('authenticate Start');
 
     const accessTokenKey = this.getAccessTokenKey(accessToken);
     this.logger.debug(`Access Token Key: ${accessTokenKey}`);
@@ -217,17 +215,17 @@ export class TokenService {
       throw new UnauthorizedException();
     }
 
-    this.logger.debug('authenticateUsers End');
+    this.logger.debug('authenticate End');
 
     return tokenInfo;
   }
 
-  async checkRefreshTokenUsers(
+  async checkRefreshToken(
     refreshToken: string,
     accessToken: string,
     userAgentId: string,
   ): Promise<TokenInfo> {
-    this.logger.debug('checkRefreshTokenUsers Start');
+    this.logger.debug('checkRefreshToken Start');
 
     const refreshTokenKey = this.getRefreshTokenKey(refreshToken);
     this.logger.debug(`Refresh Token Key: ${refreshTokenKey}`);
@@ -264,8 +262,27 @@ export class TokenService {
       throw new UnauthorizedException();
     }
 
-    this.logger.debug('checkRefreshTokenUsers End');
+    this.logger.debug('checkRefreshToken End');
 
     return tokenInfo;
+  }
+
+  async getKeysInfo(
+    userId: string,
+    deviceId: string,
+  ): Promise<{ key: string, keysInfo: KeysInfo } | null> {
+    const key = this.getKeysInfoKey(userId, deviceId);
+
+    this.logger.debug(`Keys Info Key: ${key}`);
+
+    const value = await this.tokenRedis.get(key);
+
+    if (value) {
+      const keysInfo: KeysInfo = JSON.parse(value);
+
+      return { key, keysInfo };
+    }
+
+    return null;
   }
 }

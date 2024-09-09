@@ -3,10 +3,11 @@ import {
   I18nValidationException,
   i18nValidationMessage,
 } from '@app/common';
-import { AuthUser } from '@app/common/grpc/auth-users';
+import { AuthUser, TokenType } from '@app/common/grpc/auth-users';
 import { Injectable, Logger } from '@nestjs/common';
 import { User } from '../../prisma/generated';
 import { PrismaService } from '../../prisma/prisma.service';
+import { TokenService } from '../../token/token.service';
 import { updateUserPassword } from '../../utils/utils';
 import { ChangePasswordDto } from '../dto/chage-password.dto';
 
@@ -14,7 +15,10 @@ import { ChangePasswordDto } from '../dto/chage-password.dto';
 export class ChangePasswordService {
   private readonly logger = new Logger(ChangePasswordService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly token: TokenService,
+  ) {}
 
   async changePassword(
     authUser: AuthUser,
@@ -23,6 +27,24 @@ export class ChangePasswordService {
   ): Promise<void> {
     await this.checkPassword(user, changePasswordDto);
 
+    let generatedTokens;
+
+    if (changePasswordDto.makeLogout) {
+      const devices = await this.prisma.device.findMany({
+        where: { userId: authUser.userId, id: { not: authUser.deviceId } },
+      });
+
+      const temp = devices.map((device) => ({
+        userId: device.userId,
+        deviceId: device.id,
+        tokenType: TokenType.Normal,
+      }));
+
+      if (temp.length > 0) {
+        generatedTokens = temp;
+      }
+    }
+
     await this.prisma.$transaction(async (prisma) => {
       await updateUserPassword(
         prisma,
@@ -30,6 +52,10 @@ export class ChangePasswordService {
         authUser.deviceId,
         changePasswordDto.newPassword,
       );
+
+      if (generatedTokens) {
+        await this.token.makeLogout(generatedTokens);
+      }
     });
   }
 

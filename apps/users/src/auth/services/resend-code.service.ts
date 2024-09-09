@@ -1,4 +1,4 @@
-import { emitEmail, RedisService } from '@app/common';
+import { emitEmail } from '@app/common';
 import { TokenType } from '@app/common/grpc/auth-users';
 import {
   NOTIFICATIONS_USERS_SERVERS_NAME,
@@ -11,9 +11,8 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { User } from '../../prisma/generated';
 import { PrismaService } from '../../prisma/prisma.service';
-import { VERIFICATION_REDIS_PROVIDER } from '../../redis/verification-redis.module';
 import { AuthInfo } from '../../types/auth-info.interface';
-import { VerificationService } from '../verification/verification.service';
+import { VerificationService } from './verification.service';
 
 @Injectable()
 export class ResendCodeService {
@@ -21,8 +20,6 @@ export class ResendCodeService {
 
   constructor(
     private readonly prisma: PrismaService,
-    @Inject(VERIFICATION_REDIS_PROVIDER)
-    private readonly verificationRedis: RedisService,
     private readonly verification: VerificationService,
     @Inject(NOTIFICATIONS_USERS_SERVERS_NAME)
     private readonly client: ClientProxy,
@@ -31,7 +28,7 @@ export class ResendCodeService {
   async resendCode({ authUser, user }: AuthInfo): Promise<void> {
     const info = this.infos[authUser.tokenType];
 
-    await this.verificationRedis.transaction(async () => {
+    await this.verification.transaction(async () => {
       const { isAvailable, code } =
         await this.verification.checkResendCodeAvailable(
           user.id,

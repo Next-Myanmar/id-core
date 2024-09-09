@@ -10,7 +10,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { VERIFICATION_REDIS_PROVIDER } from '../../redis/verification-redis.module';
 import { RefreshTokenLifetimeKeys } from '../constants/constants';
-import { VerificationInfo } from './verification-info.interface';
+import { VerificationInfo } from '../types/verification-info.interface';
 
 @Injectable()
 export class VerificationService {
@@ -37,6 +37,18 @@ export class VerificationService {
     this.logger.debug(`Generated verification code: ${verificationCode}`);
 
     return { verificationCode, hashedVerificationCode };
+  }
+
+  async transaction<T>(callback: () => Promise<T>): Promise<T> {
+    const result = await this.verificationRedis.transaction(async () => {
+      return await callback();
+    });
+
+    return result;
+  }
+
+  async delete(key: string): Promise<void> {
+    await this.verificationRedis.delete(key);
   }
 
   async createVerificationCode(

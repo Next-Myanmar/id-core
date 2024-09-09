@@ -3,7 +3,6 @@ import {
   emitEmail,
   I18nValidationException,
   i18nValidationMessage,
-  RedisService,
   UserAgentDetails,
 } from '@app/common';
 import { TokenPairResponse, TokenType } from '@app/common/grpc/auth-users';
@@ -17,10 +16,9 @@ import { ClientProxy } from '@nestjs/microservices';
 import { Device, User } from '../../prisma/generated';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TransactionalPrismaClient } from '../../prisma/transactional-prisma-client';
-import { VERIFICATION_REDIS_PROVIDER } from '../../redis/verification-redis.module';
 import { TokenService } from '../../token/token.service';
 import { LoginDto } from '../dto/login.dto';
-import { VerificationService } from '../verification/verification.service';
+import { VerificationService } from './verification.service';
 
 @Injectable()
 export class LoginService {
@@ -28,8 +26,6 @@ export class LoginService {
 
   constructor(
     private readonly prisma: PrismaService,
-    @Inject(VERIFICATION_REDIS_PROVIDER)
-    private readonly verificationRedis: RedisService,
     private readonly verification: VerificationService,
     private readonly token: TokenService,
     @Inject(NOTIFICATIONS_USERS_SERVERS_NAME)
@@ -42,7 +38,7 @@ export class LoginService {
   ): Promise<TokenPairResponse> {
     const user = await this.getUser(loginDto);
 
-    const result = await this.verificationRedis.transaction(async () => {
+    const result = await this.verification.transaction(async () => {
       return await this.prisma.$transaction(async (prisma) => {
         const device = await this.upsertDevice(prisma, userAgentDetails, user);
 

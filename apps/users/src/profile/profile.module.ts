@@ -5,11 +5,13 @@ import { ChangePasswordResolver } from './resolvers/change-password.resolver';
 import { GetDeviceResolver } from './resolvers/get-device.resolver';
 import { GetDevicesResolver } from './resolvers/get-devices.resolver';
 import { GetPersonalDetailsResolver } from './resolvers/get-personal-details.resolver';
+import { MakeLogoutResolver } from './resolvers/make-logout.resolver';
 import { UpdatePersonalDetailsResolver } from './resolvers/update-personal-details.resolver';
 import { ChangePasswordService } from './services/chage-password.service';
 import { GetDeviceService } from './services/get-device.service';
 import { GetDevicesService } from './services/get-devices.service';
 import { GetPersonalDetailsService } from './services/get-personal-details.service';
+import { MakeLogoutService } from './services/make-logout.service';
 import { UpdatePersonalDetailsService } from './services/update-personal-details.service';
 
 @Module({
@@ -32,6 +34,8 @@ import { UpdatePersonalDetailsService } from './services/update-personal-details
     GetDevicesResolver,
     GetDeviceService,
     GetDeviceResolver,
+    MakeLogoutService,
+    MakeLogoutResolver,
   ],
 })
 export class ProfileModule {}

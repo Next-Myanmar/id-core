@@ -1,9 +1,9 @@
 import { getUserAgentDetails } from '@app/common';
 import { Injectable, Logger } from '@nestjs/common';
-import { TokenService } from '../../token/token.service';
-import { TokenInfo } from '../../types/token-info.interface';
 import { getTokenFromAuthorization } from '../../utils/utils';
 import { AuthenticateDto } from '../dto/authenticate.dto';
+import { TokenInfo } from '../types/token-info.interface';
+import { TokenService } from './token.service';
 
 @Injectable()
 export class AuthenticateService {
@@ -24,7 +24,7 @@ export class AuthenticateService {
     );
     this.logger.debug(`UserAgentDetails: ${JSON.stringify(userAgentDetails)}`);
 
-    const tokenInfo = await this.tokenService.authenticateUsers(
+    const tokenInfo = await this.tokenService.authenticate(
       accessToken,
       userAgentDetails.userAgentId,
     );

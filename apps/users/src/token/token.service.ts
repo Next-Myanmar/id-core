@@ -2,6 +2,7 @@ import {
   AUTH_USERS_SERVICE_NAME,
   AuthUser,
   AuthUsersServiceClient,
+  GeneratedToken,
   TokenPairResponse,
   TokenType,
 } from '@app/common/grpc/auth-users';
@@ -96,5 +97,25 @@ export class TokenService implements OnModuleInit {
     this.logger.debug(`Auth User: ${JSON.stringify(authUser)}`);
 
     return authUser;
+  }
+
+  async checkAvailableTokens(
+    generatedTokens: GeneratedToken[],
+  ): Promise<GeneratedToken[]> {
+    const result = this.authUsersServiceClient.checkAvailableTokens({
+      generatedTokens,
+    });
+
+    const tokens = await lastValueFrom(result);
+
+    this.logger.debug(`Available Tokens: ${JSON.stringify(tokens)}`);
+
+    return tokens.generatedTokens;
+  }
+
+  async makeLogout(generatedTokens: GeneratedToken[]): Promise<void> {
+    const result = this.authUsersServiceClient.makeLogout({ generatedTokens });
+
+    await lastValueFrom(result);
   }
 }

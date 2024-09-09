@@ -1,4 +1,4 @@
-import { emitEmail, RedisService } from '@app/common';
+import { emitEmail } from '@app/common';
 import {
   AuthUser,
   TokenPairResponse,
@@ -14,12 +14,11 @@ import { ClientProxy } from '@nestjs/microservices';
 import { User } from '../../prisma/generated';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TransactionalPrismaClient } from '../../prisma/transactional-prisma-client';
-import { VERIFICATION_REDIS_PROVIDER } from '../../redis/verification-redis.module';
 import { TokenService } from '../../token/token.service';
 import { AuthInfo } from '../../types/auth-info.interface';
 import { updateLoginHistory } from '../../utils/utils';
 import { ActivateUserDto } from '../dto/activate-user.dto';
-import { VerificationService } from '../verification/verification.service';
+import { VerificationService } from './verification.service';
 
 @Injectable()
 export class ActivateUserService {
@@ -28,8 +27,6 @@ export class ActivateUserService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly verification: VerificationService,
-    @Inject(VERIFICATION_REDIS_PROVIDER)
-    private readonly verificationRedis: RedisService,
     private readonly token: TokenService,
     @Inject(NOTIFICATIONS_USERS_SERVERS_NAME)
     private readonly client: ClientProxy,
@@ -45,9 +42,9 @@ export class ActivateUserService {
       activateUserDto.code,
     );
 
-    const result = await this.verificationRedis.transaction(async () => {
+    const result = await this.verification.transaction(async () => {
       return await this.prisma.$transaction(async (prisma) => {
-        await this.verificationRedis.delete(key);
+        await this.verification.delete(key);
 
         const user = await this.updateUserToVerified(prisma, authUser);
 
