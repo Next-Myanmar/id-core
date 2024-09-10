@@ -38,16 +38,6 @@ export class GraphQLModule {
                   delete error.extensions.originalError;
                 }
 
-                if (
-                  error.extensions?.code ===
-                  GraphQLErrorCodes.INTERNAL_SERVER_ERROR
-                ) {
-                  const i18n = I18nContext.current();
-                  error.message = i18n.t('exception.INTERNAL_SERVER_ERROR', {
-                    lang: i18n.lang,
-                  });
-                }
-
                 if (!isDevelopment) {
                   delete error.extensions.stacktrace;
                   delete error.extensions.serviceName;

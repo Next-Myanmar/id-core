@@ -39,7 +39,7 @@ export class LoginService {
     const user = await this.getUser(loginDto);
 
     const result = await this.verification.transaction(async () => {
-      return await this.prisma.$transaction(async (prisma) => {
+      return await this.prisma.transaction(async (prisma) => {
         const device = await this.upsertDevice(prisma, userAgentDetails, user);
 
         const loginCode = await this.verification.createVerificationCode(

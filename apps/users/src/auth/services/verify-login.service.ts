@@ -28,7 +28,7 @@ export class VerifyLoginService {
     );
 
     const result = await this.verification.transaction(async () => {
-      return await this.prisma.$transaction(async (prisma) => {
+      return await this.prisma.transaction(async (prisma) => {
         await this.verification.delete(key);
 
         await updateLoginHistory(prisma, authUser.deviceId);

@@ -4,8 +4,10 @@ import {
   ArgumentsHost,
   Catch,
   ExceptionFilter,
+  HttpException,
   HttpStatus,
-  Logger,  
+  InternalServerErrorException,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { RmqContext } from '@nestjs/microservices';
@@ -48,7 +50,7 @@ const ErrorDetails = {
       rpc: gRpcStatus.RESOURCE_EXHAUSTED,
     },
   },
-  unknown: {
+  InternalServerErrorException: {
     key: 'exception.INTERNAL_SERVER_ERROR',
     codes: {
       http: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -58,16 +60,25 @@ const ErrorDetails = {
   },
 };
 
-@Catch(I18nValidationException, UnauthorizedException, ThrottlerException)
+export const DEFAULT_I18N_FILTER_EXCEPTIONS = [
+  InternalServerErrorException,
+  I18nValidationException,
+  UnauthorizedException,
+  ThrottlerException,
+];
+
+@Catch(...DEFAULT_I18N_FILTER_EXCEPTIONS)
 export class I18nExceptionFilter implements ExceptionFilter {
-  private readonly logger = new Logger(I18nExceptionFilter.name);
+  protected readonly logger = new Logger(I18nExceptionFilter.name);
 
   catch(exception: any, host: ArgumentsHost): any {
     if (exception instanceof I18nValidationException) {
       return this.handleValidationError(exception, host);
     }
 
+    exception = this.getException(exception);
     const errorDetail = ErrorDetails[exception.name];
+
     const translateKey = errorDetail.key;
 
     const i18nContext = I18nContext.current();
@@ -121,6 +132,10 @@ export class I18nExceptionFilter implements ExceptionFilter {
       default:
         throw new Error('Unexpected host type: ' + hostType);
     }
+  }
+
+  protected getException(exception: any): HttpException {
+    return exception;
   }
 
   private handleValidationError(

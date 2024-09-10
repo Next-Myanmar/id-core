@@ -13,5 +13,6 @@
   "INVALID_DEVICES": "There are invalid device(s)",
   "FUTURE_DATE": "{property} cannot be in the future",
   "MIN_DATE": "{property} must not be earlier than {minDate}",
-  "BOOLEAN": "The value of {property} must be either true or false"
+  "BOOLEAN": "The value of {property} must be either true or false",
+  "UNIQUE": "{property} contains duplicate values"
 }

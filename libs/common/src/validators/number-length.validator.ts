@@ -11,7 +11,7 @@ export function NumberLength(
 ) {
   return function (object: object, propertyName: string) {
     registerDecorator({
-      name: 'NumberLength',
+      name: 'numberLength',
       target: object.constructor,
       propertyName,
       options: validationOptions,

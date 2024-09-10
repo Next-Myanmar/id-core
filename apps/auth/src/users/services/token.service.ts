@@ -59,8 +59,9 @@ export class TokenService {
     }
 
     await this.tokenRedis.delete(key);
+    this.logger.debug(`Deleted keysInfo Key: ${key}`);
 
-    this.logger.debug('deleteKeysInfo Start');
+    this.logger.debug('deleteKeysInfo End');
   }
 
   async revokeKeysInfo(userId: string, deviceId: string): Promise<void> {
@@ -270,12 +271,13 @@ export class TokenService {
   async getKeysInfo(
     userId: string,
     deviceId: string,
-  ): Promise<{ key: string, keysInfo: KeysInfo } | null> {
+  ): Promise<{ key: string; keysInfo?: KeysInfo }> {
     const key = this.getKeysInfoKey(userId, deviceId);
 
     this.logger.debug(`Keys Info Key: ${key}`);
 
     const value = await this.tokenRedis.get(key);
+    this.logger.debug(`Keys Info: ${value}`);
 
     if (value) {
       const keysInfo: KeysInfo = JSON.parse(value);
@@ -283,6 +285,6 @@ export class TokenService {
       return { key, keysInfo };
     }
 
-    return null;
+    return { key };
   }
 }

@@ -43,7 +43,7 @@ export class ActivateUserService {
     );
 
     const result = await this.verification.transaction(async () => {
-      return await this.prisma.$transaction(async (prisma) => {
+      return await this.prisma.transaction(async (prisma) => {
         await this.verification.delete(key);
 
         const user = await this.updateUserToVerified(prisma, authUser);

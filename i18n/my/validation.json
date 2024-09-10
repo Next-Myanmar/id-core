@@ -13,5 +13,6 @@
   "INVALID_DEVICES": "There are invalid device(s)",
   "FUTURE_DATE": "{property}က အနာဂတ်ဖြစ်လို့မရပါ",
   "MIN_DATE": "{property}က {minDate}နောက် ဖြစ်ရပါမည်",
-  "BOOLEAN": "{property}က true (သို့) false ဖြစ်ရပါမည်"
+  "BOOLEAN": "{property}က true (သို့) false ဖြစ်ရပါမည်",
+  "UNIQUE": "{property}တွင် တူညီသောဒေတာများ ပါလို့မရပါ"
 }

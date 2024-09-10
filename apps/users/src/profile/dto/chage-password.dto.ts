@@ -1,11 +1,6 @@
 import { i18nValidationMessage } from '@app/common';
 import { Field, InputType } from '@nestjs/graphql';
-import {
-  IsBoolean,
-  IsNotEmpty,
-  IsOptional,
-  IsStrongPassword,
-} from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsStrongPassword } from 'class-validator';
 
 @InputType()
 export class ChangePasswordDto {
@@ -29,13 +24,13 @@ export class ChangePasswordDto {
   )
   newPassword: string;
 
-  @Field()
+  @Field(() => Boolean)
   @IsBoolean({
     message: i18nValidationMessage({
       property: 'property.Password',
       message: 'validation.BOOLEAN',
     }),
   })
-  @IsOptional()
-  makeLogout: boolean = false;
+  W;
+  makeLogout: boolean;
 }

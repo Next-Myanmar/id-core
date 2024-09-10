@@ -3,7 +3,11 @@ import {
   I18nValidationException,
   i18nValidationMessage,
 } from '@app/common';
-import { AuthUser, TokenType } from '@app/common/grpc/auth-users';
+import {
+  AuthUser,
+  GeneratedToken,
+  TokenType,
+} from '@app/common/grpc/auth-users';
 import { Injectable, Logger } from '@nestjs/common';
 import { User } from '../../prisma/generated';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -27,7 +31,7 @@ export class ChangePasswordService {
   ): Promise<void> {
     await this.checkPassword(user, changePasswordDto);
 
-    let generatedTokens;
+    let generatedTokens: GeneratedToken[];
 
     if (changePasswordDto.makeLogout) {
       const devices = await this.prisma.device.findMany({
@@ -45,7 +49,7 @@ export class ChangePasswordService {
       }
     }
 
-    await this.prisma.$transaction(async (prisma) => {
+    await this.prisma.transaction(async (prisma) => {
       await updateUserPassword(
         prisma,
         authUser.userId,

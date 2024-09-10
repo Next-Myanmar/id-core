@@ -1,4 +1,4 @@
-import { i18nValidationMessage } from '@app/common';
+import { i18nValidationMessage, IsUnique } from '@app/common';
 import { Field, InputType } from '@nestjs/graphql';
 import { ArrayNotEmpty, IsArray, IsNotEmpty } from 'class-validator';
 
@@ -17,6 +17,12 @@ export class MakeLogoutDto {
     message: i18nValidationMessage({
       property: 'property.DeviceId',
       message: 'validation.NOT_EMPTY_EACH',
+    }),
+  })
+  @IsUnique([], {
+    message: i18nValidationMessage({
+      property: 'property.DeviceId',
+      message: 'validation.UNIQUE',
     }),
   })
   deviceIds: string[];
