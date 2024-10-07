@@ -1,10 +1,10 @@
-import { UsersNotificationsModule } from '@app/common/rmq/notifications/users';
+import { NotificationsUsersModule } from '@app/common/rmq/notifications/users';
 import { Module } from '@nestjs/common';
 import { TestUsersController } from './controllers/test-users.controller';
 
 @Module({
   imports: [
-    UsersNotificationsModule.forRootAsync({
+    NotificationsUsersModule.forRootAsync({
       envFilePath: './apps/notifications/.env',
     }),
   ],

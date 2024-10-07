@@ -1,3 +1,4 @@
+import { CurrentUserAgent, UserAgentDetails } from '@app/common';
 import { TokenPairResponse, TokenType } from '@app/common/grpc/auth-users';
 import {
   Body,
@@ -25,12 +26,14 @@ export class ActivateUserController {
   async activateUser(
     @Body() activateUserDto: ActivateUserDto,
     @CurrentAuthInfo() authInfo: AuthInfo,
+    @CurrentUserAgent() userAgentDetails: UserAgentDetails,
   ): Promise<TokenPairResponse> {
     this.logger.log('Activate User Start');
 
     const result = await this.activteUserService.activateUser(
       activateUserDto,
       authInfo,
+      userAgentDetails,
     );
 
     this.logger.log('Activate User End');

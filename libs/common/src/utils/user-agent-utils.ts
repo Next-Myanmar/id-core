@@ -1,30 +1,64 @@
 import { UAParser } from 'ua-parser-js';
 
 export interface UserAgentDetails {
-  userAgentId: string;
-  browser: string;
-  os: string;
-  deviceType: string;
-  deviceModel: string;
-  deviceVendor: string;
-  userAgentSource?: string;
-  details?: UAParser.IResult;
+  id: string;
+  browser: {
+    name: string;
+    version: string;
+  };
+  engine: {
+    name: string;
+    version: string;
+  };
+  os: {
+    name: string;
+    version: string;
+  };
+  device: {
+    type: string;
+    vendor: string;
+    model: string;
+  };
+  cpu: {
+    architecture: string;
+  };
+  ua: string;
 }
 
-export function getUserAgentDetails(useragent: string): UserAgentDetails {
-  const parser = new UAParser(useragent);
+export function getUserAgentDetails(ua: string): UserAgentDetails {
+  const parser = new UAParser(ua);
   const result = parser.getResult();
-  const temp = {
-    browser: result.browser.name || 'unknown',
-    os: result.os.name || 'unknown',
-    deviceType: result.device.type || 'unknown',
-    deviceModel: result.device.model || 'unknown',
-    deviceVendor: result.device.vendor || 'unknown',
-    userAgentSource: useragent,
-    details: result,
+
+  const browser = {
+    name: result.browser.name || 'unknown',
+    version: result.browser.version || 'unknown',
   };
 
-  const userAgentId = `${temp.browser}-${temp.os}-${temp.deviceType}-${temp.deviceModel}-${temp.deviceVendor}`;
+  const engine = {
+    name: result.engine.name || 'unknown',
+    version: result.engine.name || 'unknown',
+  };
 
-  return { userAgentId, ...temp };
+  const os = {
+    name: result.os.name || 'unknown',
+    version: result.os.name || 'unknown',
+  };
+
+  const device = {
+    type: result.device.type || 'unknown',
+    vendor: result.device.vendor || 'unknown',
+    model: result.device.model || 'unknown',
+  };
+
+  const cpu = {
+    architecture: result.cpu.architecture || 'unknown',
+  };
+
+  let id = `${browser.name}:${browser.version}`;
+  id += `:${engine.name}:${engine.version}`;
+  id += `:${os.name}:${os.version}`;
+  id += `:${device.type}:${device.vendor}:${device.model}`;
+  id += `:${cpu.architecture}`;
+
+  return { id, ua, browser, engine, os, device, cpu };
 }

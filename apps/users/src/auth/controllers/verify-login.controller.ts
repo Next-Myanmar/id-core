@@ -1,3 +1,4 @@
+import { CurrentUserAgent, UserAgentDetails } from '@app/common';
 import { TokenPairResponse, TokenType } from '@app/common/grpc/auth-users';
 import {
   Body,
@@ -25,12 +26,14 @@ export class VerifyLoginController {
   async verifyLogin(
     @Body() verifyLoginDto: VerifyLoginDto,
     @CurrentAuthInfo() authInfo: AuthInfo,
+    @CurrentUserAgent() userAgentDetails: UserAgentDetails,
   ): Promise<TokenPairResponse> {
     this.logger.log('Verify Login Start');
 
     const result = await this.verifyLoginService.verifyLogin(
       verifyLoginDto,
       authInfo,
+      userAgentDetails,
     );
 
     this.logger.log('Verify Login End');

@@ -1,3 +1,4 @@
+import { PrismaErrorCodes } from '@app/common/database';
 import { GraphQLErrorCodes } from '@app/common/graphql';
 import { status as gRpcStatus } from '@grpc/grpc-js';
 import {
@@ -8,10 +9,9 @@ import {
   HttpStatus,
   InternalServerErrorException,
   Logger,
-  UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { RmqContext } from '@nestjs/microservices';
-import { ThrottlerException } from '@nestjs/throttler';
 import { I18nContext } from 'nestjs-i18n';
 import { throwError } from 'rxjs';
 import { I18nValidationException } from '../exceptions';
@@ -39,7 +39,7 @@ const ErrorDetails = {
     codes: {
       http: HttpStatus.NOT_FOUND,
       graphql: GraphQLErrorCodes.NOT_FOUND,
-      rpc: gRpcStatus.PERMISSION_DENIED,
+      rpc: gRpcStatus.NOT_FOUND,
     },
   },
   ThrottlerException: {
@@ -60,24 +60,42 @@ const ErrorDetails = {
   },
 };
 
-export const DEFAULT_I18N_FILTER_EXCEPTIONS = [
-  InternalServerErrorException,
-  I18nValidationException,
-  UnauthorizedException,
-  ThrottlerException,
-];
-
-@Catch(...DEFAULT_I18N_FILTER_EXCEPTIONS)
+@Catch()
 export class I18nExceptionFilter implements ExceptionFilter {
   protected readonly logger = new Logger(I18nExceptionFilter.name);
 
   catch(exception: any, host: ArgumentsHost): any {
-    if (exception instanceof I18nValidationException) {
+    if (exception.name === 'I18nValidationException') {
       return this.handleValidationError(exception, host);
     }
 
-    exception = this.getException(exception);
-    const errorDetail = ErrorDetails[exception.name];
+    let exceptionName: string;
+    if (
+      exception.name === 'PrismaClientKnownRequestError' ||
+      exception.name === 'PrismaClientValidationError'
+    ) {
+      if (
+        exception.code === PrismaErrorCodes.NOT_FOUND ||
+        exception.code === PrismaErrorCodes.INVALID_COLUMN_DATA
+      ) {
+        exceptionName = NotFoundException.name;
+      } else {
+        this.logger.warn(`Prisma Error: ${exception}`);
+
+        exceptionName = InternalServerErrorException.name;
+      }
+    } else {
+      exceptionName = this.getException(exception).name;
+    }
+
+    let errorDetail = ErrorDetails[exceptionName];
+
+    if (errorDetail) {
+      this.logger.debug(`Error: ${exception}`);
+    } else {
+      errorDetail = ErrorDetails.InternalServerErrorException;
+      this.logger.warn(`Error: ${exception}`);
+    }
 
     const translateKey = errorDetail.key;
 
@@ -105,11 +123,13 @@ export class I18nExceptionFilter implements ExceptionFilter {
       case 'graphql': {
         exception.message = message;
 
-        const response = exception.getResponse();
-        response.message = message;
-        response.code = code;
+        try {
+          const response = exception.getResponse();
+          response.message = message;
+          response.code = code;
 
-        delete response.error;
+          delete response.error;
+        } catch {}
 
         return exception;
       }

@@ -68,6 +68,7 @@ export class VerificationService {
       code: hashedVerificationCode,
       retryCount: 0,
       resendCodeCount: 0,
+      tokenType,
     };
 
     const lifetimeKey = RefreshTokenLifetimeKeys[tokenType];
@@ -88,6 +89,7 @@ export class VerificationService {
   async checkVerificationCode(
     userId: string,
     deviceId: string,
+    tokenType: TokenType,
     verificationCode: number,
   ): Promise<string> {
     this.logger.debug('checkVerificationCode Start');
@@ -104,6 +106,11 @@ export class VerificationService {
     }
 
     const verificationInfo: VerificationInfo = JSON.parse(value);
+
+    if (verificationInfo.tokenType != tokenType) {
+      this.logger.debug(`Token type is not equal`);
+      this.throwInvalidVerificationCodeValidationError();
+    }
 
     const allowCodeAttempts = Number(
       this.config.getOrThrow<number>('ALLOW_CODE_ATTEMPTS'),
@@ -145,6 +152,7 @@ export class VerificationService {
   async checkResendCodeAvailable(
     userId: string,
     deviceId: string,
+    tokenType: TokenType,
   ): Promise<{ isAvailable: boolean; code?: number }> {
     this.logger.debug('checkResendCodeAvailable Start');
 
@@ -161,6 +169,11 @@ export class VerificationService {
     }
 
     const verificationInfo: VerificationInfo = JSON.parse(value);
+
+    if (verificationInfo.tokenType != tokenType) {
+      this.logger.debug(`Token type is not equal`);
+      this.throwInvalidVerificationCodeValidationError();
+    }
 
     verificationInfo.resendCodeCount = verificationInfo.resendCodeCount + 1;
     this.logger.debug(

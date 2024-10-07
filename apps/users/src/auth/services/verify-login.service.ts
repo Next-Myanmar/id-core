@@ -1,9 +1,16 @@
-import { TokenPairResponse, TokenType } from '@app/common/grpc/auth-users';
+import { UserAgentDetails } from '@app/common';
+import {
+  AuthUsersService,
+  TokenPairResponse,
+  TokenType,
+} from '@app/common/grpc/auth-users';
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { TokenService } from '../../token/token.service';
+import { ConfigService } from '@nestjs/config';
 import { AuthInfo } from '../../types/auth-info.interface';
-import { updateLoginHistory } from '../../utils/utils';
+import {
+  AccessTokenLifetimeKeys,
+  RefreshTokenLifetimeKeys,
+} from '../constants/constants';
 import { VerifyLoginDto } from '../dto/verify-login.dto';
 import { VerificationService } from './verification.service';
 
@@ -12,36 +19,46 @@ export class VerifyLoginService {
   private readonly logger = new Logger(VerifyLoginService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly config: ConfigService,
     private readonly verification: VerificationService,
-    private readonly token: TokenService,
+    private readonly authUsers: AuthUsersService,
   ) {}
 
   async verifyLogin(
     verifyLoginDto: VerifyLoginDto,
-    { authUser, device }: AuthInfo,
+    { authUser }: AuthInfo,
+    userAgentDetails: UserAgentDetails,
   ): Promise<TokenPairResponse> {
     const key = await this.verification.checkVerificationCode(
       authUser.userId,
       authUser.deviceId,
+      TokenType.VerifyLogin,
       verifyLoginDto.code,
     );
 
     const result = await this.verification.transaction(async () => {
-      return await this.prisma.transaction(async (prisma) => {
-        await this.verification.delete(key);
+      await this.verification.delete(key);
 
-        await updateLoginHistory(prisma, authUser.deviceId);
+      const accessLifetimeKey = AccessTokenLifetimeKeys[TokenType.Normal];
+      const refreshLifetimeKey = RefreshTokenLifetimeKeys[TokenType.Normal];
 
-        const tokenPair = await this.token.generateTokenPair(
-          authUser.userId,
-          device.id,
-          device.userAgentSource,
-          TokenType.Normal,
-        );
+      const accessTokenLifetime = Number(
+        this.config.getOrThrow<number>(accessLifetimeKey),
+      );
+      const refreshTokenLifetime = Number(
+        this.config.getOrThrow<number>(refreshLifetimeKey),
+      );
 
-        return tokenPair;
+      const tokenPair = await this.authUsers.generateTokenPair({
+        userId: authUser.userId,
+        deviceId: authUser.deviceId,
+        ua: userAgentDetails.ua,
+        tokenType: TokenType.Normal,
+        accessTokenLifetime,
+        refreshTokenLifetime,
       });
+
+      return tokenPair;
     });
 
     return result;

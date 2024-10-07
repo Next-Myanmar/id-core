@@ -31,6 +31,5 @@ export class ChangePasswordDto {
       message: 'validation.BOOLEAN',
     }),
   })
-  W;
   makeLogout: boolean;
 }

@@ -9,7 +9,7 @@ services:
     env_file:
       - ./auth/.env
     environment:
-      - REDIS_HOST_USERS_TOKEN=redis
+      - TOKEN_REDIS_HOST=redis
       - THROTTLER_REDIS_HOST=redis
     ports:
       - '3001:3001'

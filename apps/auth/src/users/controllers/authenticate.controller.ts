@@ -24,10 +24,8 @@ export class AuthenticateController {
 
     const result = await this.authenticateService.authenticate(authenticateDto);
 
-    const data: AuthUser = { ...result.user };
-
     this.logger.log('Authenticate End');
 
-    return data;
+    return result;
   }
 }

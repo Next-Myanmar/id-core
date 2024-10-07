@@ -1,20 +1,17 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
+import { TokenService } from '../services/token.service';
 import { AuthenticateController } from './controllers/authenticate.controller';
-import { CheckAvailableTokensController } from './controllers/check-available-tokens.controller';
 import { GenerateTokenPairController } from './controllers/generate-token-pair.controller';
 import { LogoutController } from './controllers/logout.controller';
-import { MakeLogoutController } from './controllers/make-logout.controller';
+import { MakeAllLogoutController } from './controllers/make-all-logout.controller';
 import { RefreshTokenController } from './controllers/refresh-token.controller';
 import { AuthenticateService } from './services/authenticate.service';
-import { CheckAvailableTokensService } from './services/check-available-tokens.service';
 import { GenerateTokenPairService } from './services/generate-token-pair.service';
-import { LogoutService } from './services/logout.service';
-import { MakeLogoutService } from './services/make-logout.service';
+import { MakeAllLogoutService } from './services/make-all-logout.service';
 import { RefreshTokenService } from './services/refresh-token.service';
-import { TokenService } from './services/token.service';
-import { TestUsersModule } from './test-users.module';
+import { LogoutService } from './services/logout.service';
 
 @Module({
   imports: [
@@ -22,19 +19,18 @@ import { TestUsersModule } from './test-users.module';
       envFilePath: './apps/auth/.env',
       isGlobal: true,
       validationSchema: Joi.object({
+        USERS_APP_CLIENT_OAUTH_ID: Joi.string().required(),
         GRPC_HOST_USERS: Joi.string().required(),
         GRPC_PORT_USERS: Joi.number().required(),
       }),
     }),
-    ...(process.env.NODE_ENV === 'development' ? [TestUsersModule] : []),
   ],
   controllers: [
     GenerateTokenPairController,
     AuthenticateController,
     RefreshTokenController,
     LogoutController,
-    CheckAvailableTokensController,
-    MakeLogoutController,
+    MakeAllLogoutController,
   ],
   providers: [
     TokenService,
@@ -42,8 +38,7 @@ import { TestUsersModule } from './test-users.module';
     AuthenticateService,
     RefreshTokenService,
     LogoutService,
-    CheckAvailableTokensService,
-    MakeLogoutService,
+    MakeAllLogoutService,
   ],
 })
 export class UsersModule {}

@@ -5,13 +5,14 @@ import {
 } from '@app/common';
 import {
   AuthUser,
-  GeneratedToken,
+  AuthUsersService,
   TokenType,
 } from '@app/common/grpc/auth-users';
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { RefreshTokenLifetimeKeys } from '../../auth/constants/constants';
 import { User } from '../../prisma/generated';
 import { PrismaService } from '../../prisma/prisma.service';
-import { TokenService } from '../../token/token.service';
 import { updateUserPassword } from '../../utils/utils';
 import { ChangePasswordDto } from '../dto/chage-password.dto';
 
@@ -20,8 +21,9 @@ export class ChangePasswordService {
   private readonly logger = new Logger(ChangePasswordService.name);
 
   constructor(
+    private readonly config: ConfigService,
     private readonly prisma: PrismaService,
-    private readonly token: TokenService,
+    private readonly authUsers: AuthUsersService,
   ) {}
 
   async changePassword(
@@ -31,24 +33,6 @@ export class ChangePasswordService {
   ): Promise<void> {
     await this.checkPassword(user, changePasswordDto);
 
-    let generatedTokens: GeneratedToken[];
-
-    if (changePasswordDto.makeLogout) {
-      const devices = await this.prisma.device.findMany({
-        where: { userId: authUser.userId, id: { not: authUser.deviceId } },
-      });
-
-      const temp = devices.map((device) => ({
-        userId: device.userId,
-        deviceId: device.id,
-        tokenType: TokenType.Normal,
-      }));
-
-      if (temp.length > 0) {
-        generatedTokens = temp;
-      }
-    }
-
     await this.prisma.transaction(async (prisma) => {
       await updateUserPassword(
         prisma,
@@ -57,8 +41,18 @@ export class ChangePasswordService {
         changePasswordDto.newPassword,
       );
 
-      if (generatedTokens) {
-        await this.token.makeLogout(generatedTokens);
+      if (changePasswordDto.makeLogout) {
+        const refreshLifetimeKey = RefreshTokenLifetimeKeys[TokenType.Normal];
+
+        const refreshTokenLifetime = Number(
+          this.config.getOrThrow<number>(refreshLifetimeKey),
+        );
+
+        await this.authUsers.makeAllLogout({
+          userId: authUser.userId,
+          refreshTokenLifetime,
+          currentDeviceId: authUser.deviceId,
+        });
       }
     });
   }

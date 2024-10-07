@@ -5,5 +5,5 @@ export class AuthenticateDto {
   authorization: string;
 
   @IsNotEmpty()
-  userAgentSource: string;
+  ua: string;
 }

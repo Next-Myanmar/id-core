@@ -6,7 +6,8 @@ import {
   LoggerModule,
   ThrottlerModule,
 } from '@app/common';
-import { UsersNotificationsModule } from '@app/common/rmq/notifications/users';
+import { AuthUsersServiceModule } from '@app/common/grpc/auth-users';
+import { NotificationsUsersModule } from '@app/common/rmq/notifications/users';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
@@ -16,7 +17,6 @@ import { AuthGuard } from './guards/auth.guard';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProfileModule } from './profile/profile.module';
 import { VerificationRedisModule } from './redis/verification-redis.module';
-import { TokenModule } from './token/token.module';
 
 @Module({
   imports: [
@@ -38,12 +38,12 @@ import { TokenModule } from './token/token.module';
     }),
     GraphQLModule.forRoot(),
     VerificationRedisModule,
-    UsersNotificationsModule.forRootAsync({
+    PrismaModule,
+    HealthModule,
+    AuthUsersServiceModule.forRootAsync({ envFilePath: './apps/users/.env' }),
+    NotificationsUsersModule.forRootAsync({
       envFilePath: './apps/users/.env',
     }),
-    PrismaModule,
-    TokenModule,
-    HealthModule,
     AuthModule,
     ProfileModule,
   ],

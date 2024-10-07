@@ -1,11 +1,21 @@
-import { getRequestFromContext } from '@app/common';
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import { GqlExecutionContext } from '@nestjs/graphql';
 import { AuthInfo } from '../types/auth-info.interface';
 
 const getCurrentAuthInfoByContext = (context: ExecutionContext): AuthInfo => {
-  const req: any = getRequestFromContext(context);
+  const type: string = context.getType();
+  if (type !== 'http' && type !== 'graphql') {
+    return null;
+  }
 
-  return req.headers?.auth;
+  let req: any;
+  if (type === 'http') {
+    req = context.switchToHttp().getRequest();
+  } else {
+    req = GqlExecutionContext.create(context).getContext().req;
+  }
+
+  return req.auth;
 };
 
 export const CurrentAuthInfo = createParamDecorator(

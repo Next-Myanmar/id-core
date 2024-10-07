@@ -1,6 +1,7 @@
-import { emitEmail } from '@app/common';
+import { emitEmail, UserAgentDetails } from '@app/common';
 import {
   AuthUser,
+  AuthUsersService,
   TokenPairResponse,
   TokenType,
 } from '@app/common/grpc/auth-users';
@@ -10,13 +11,16 @@ import {
   SendWelcomeUserEmailDto,
 } from '@app/common/rmq/notifications/users';
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ClientProxy } from '@nestjs/microservices';
 import { User } from '../../prisma/generated';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TransactionalPrismaClient } from '../../prisma/transactional-prisma-client';
-import { TokenService } from '../../token/token.service';
 import { AuthInfo } from '../../types/auth-info.interface';
-import { updateLoginHistory } from '../../utils/utils';
+import {
+  AccessTokenLifetimeKeys,
+  RefreshTokenLifetimeKeys,
+} from '../constants/constants';
 import { ActivateUserDto } from '../dto/activate-user.dto';
 import { VerificationService } from './verification.service';
 
@@ -25,20 +29,23 @@ export class ActivateUserService {
   private readonly logger = new Logger(ActivateUserService.name);
 
   constructor(
+    private readonly config: ConfigService,
     private readonly prisma: PrismaService,
     private readonly verification: VerificationService,
-    private readonly token: TokenService,
+    private readonly authUsers: AuthUsersService,
     @Inject(NOTIFICATIONS_USERS_SERVERS_NAME)
     private readonly client: ClientProxy,
   ) {}
 
   async activateUser(
     activateUserDto: ActivateUserDto,
-    { authUser, device }: AuthInfo,
+    { authUser }: AuthInfo,
+    userAgentDetails: UserAgentDetails,
   ): Promise<TokenPairResponse> {
     const key = await this.verification.checkVerificationCode(
       authUser.userId,
       authUser.deviceId,
+      TokenType.ActivateUser,
       activateUserDto.code,
     );
 
@@ -48,14 +55,24 @@ export class ActivateUserService {
 
         const user = await this.updateUserToVerified(prisma, authUser);
 
-        await updateLoginHistory(prisma, authUser.deviceId);
+        const accessLifetimeKey = AccessTokenLifetimeKeys[TokenType.Normal];
+        const refreshLifetimeKey = RefreshTokenLifetimeKeys[TokenType.Normal];
 
-        const tokenPair = await this.token.generateTokenPair(
-          user.id,
-          device.id,
-          device.userAgentSource,
-          TokenType.Normal,
+        const accessTokenLifetime = Number(
+          this.config.getOrThrow<number>(accessLifetimeKey),
         );
+        const refreshTokenLifetime = Number(
+          this.config.getOrThrow<number>(refreshLifetimeKey),
+        );
+
+        const tokenPair = await this.authUsers.generateTokenPair({
+          userId: authUser.userId,
+          deviceId: authUser.deviceId,
+          ua: userAgentDetails.ua,
+          tokenType: TokenType.Normal,
+          accessTokenLifetime: accessTokenLifetime,
+          refreshTokenLifetime: refreshTokenLifetime,
+        });
 
         const data: SendWelcomeUserEmailDto = {
           recipient: user.email,

@@ -1,10 +1,9 @@
-import { I18nValidationPipe } from '@app/common';
+import { I18nExceptionFilter, I18nValidationPipe } from '@app/common';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { Logger } from 'nestjs-pino';
 import { UsersModule } from './users.module';
-import { ExceptionFilter } from './exception/exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(UsersModule, { bufferLogs: true });
@@ -20,7 +19,7 @@ async function bootstrap() {
     }),
   );
 
-  app.useGlobalFilters(new ExceptionFilter());
+  app.useGlobalFilters(new I18nExceptionFilter());
 
   app.enableShutdownHooks();
 

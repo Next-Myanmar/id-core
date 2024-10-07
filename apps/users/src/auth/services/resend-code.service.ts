@@ -10,7 +10,6 @@ import {
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { User } from '../../prisma/generated';
-import { PrismaService } from '../../prisma/prisma.service';
 import { AuthInfo } from '../../types/auth-info.interface';
 import { VerificationService } from './verification.service';
 
@@ -19,7 +18,6 @@ export class ResendCodeService {
   private readonly logger = new Logger(ResendCodeService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
     private readonly verification: VerificationService,
     @Inject(NOTIFICATIONS_USERS_SERVERS_NAME)
     private readonly client: ClientProxy,
@@ -33,6 +31,7 @@ export class ResendCodeService {
         await this.verification.checkResendCodeAvailable(
           user.id,
           authUser.deviceId,
+          authUser.tokenType,
         );
 
       if (isAvailable) {

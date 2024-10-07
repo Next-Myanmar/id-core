@@ -1,5 +1,6 @@
 import {
   CurrentUserAgent,
+  Public,
   UrlEncodedGuard,
   UserAgentDetails,
 } from '@app/common';
@@ -31,6 +32,7 @@ export class RefreshTokenController {
   @Post('refresh-token')
   @HttpCode(HttpStatus.OK)
   @UseGuards(UrlEncodedGuard)
+  @Public()
   async refreshToken(
     @Body() refreshTokenDto: RefreshTokenDto,
     @CurrentUserAgent() userAgentDetails: UserAgentDetails,
@@ -46,11 +48,6 @@ export class RefreshTokenController {
 
     this.logger.log('Refresh Token End');
 
-    return {
-      accessToken: result.accessToken,
-      expiresAt: result.accessTokenExpiresAt.getTime().toString(),
-      tokenType: result.user.tokenType,
-      refreshToken: result.refreshToken,
-    };
+    return result;
   }
 }

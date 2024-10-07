@@ -1,36 +1,16 @@
-import { UserAgentDetails } from '@app/common';
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
-import { Request } from 'express';
-import { getTokenFromAuthorization } from '../../utils/utils';
-import { TokenService } from './token.service';
+import { Injectable, Logger } from '@nestjs/common';
+import { TokenService } from '../../services/token.service';
+import { AuthTokenInfo } from '../../types/auth-token-info.interface';
 
 @Injectable()
 export class LogoutService {
   private readonly logger = new Logger(LogoutService.name);
 
-  constructor(private readonly tokenService: TokenService) {}
+  constructor(private readonly token: TokenService) {}
 
-  async logout(
-    req: Request,
-    userAgentDetails: UserAgentDetails,
-  ): Promise<void> {
-    const authorization = req.headers?.authorization;
-    if (!authorization) {
-      throw new UnauthorizedException();
-    }
-    const accessToken = getTokenFromAuthorization(authorization);
-    this.logger.debug(`AccessToken: ${accessToken}`);
-
-    const tokenInfo = await this.tokenService.authenticate(
-      accessToken,
-      userAgentDetails.userAgentId,
-    );
-
-    await this.tokenService.transaction(async () => {
-      await this.tokenService.revokeKeysInfo(
-        tokenInfo.user.userId,
-        tokenInfo.user.deviceId,
-      );
+  async logout({ client, authInfo }: AuthTokenInfo) {
+    await this.token.transaction(async () => {
+      await this.token.revokeKeysInfo(client, authInfo);
     });
   }
 }

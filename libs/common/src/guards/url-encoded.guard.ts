@@ -1,14 +1,16 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { Request } from 'express';
 import { I18nValidationException, i18nValidationMessage } from '../i18n';
-import { getRequestFromContext } from '../utils';
 
 @Injectable()
 export class UrlEncodedGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const req: Request = getRequestFromContext(context);
-    if (req.is('application/x-www-form-urlencoded')) {
-      return true;
+    const type: string = context.getType();
+    if (type === 'http') {
+      const req = context.switchToHttp().getRequest();
+
+      if (req.is('application/x-www-form-urlencoded')) {
+        return true;
+      }
     }
 
     throw I18nValidationException.create({

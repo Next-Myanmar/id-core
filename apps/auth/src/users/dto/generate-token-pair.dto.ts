@@ -5,11 +5,11 @@ export class GenerateTokenPairDto {
   @IsNotEmpty()
   userId: string;
 
-  @IsNotEmpty()
-  deviceId: string;
+  @IsOptional()
+  deviceId?: string;
 
   @IsNotEmpty()
-  userAgentSource: string;
+  ua: string;
 
   @Min(60)
   @IsNumber({ allowNaN: false })
@@ -18,8 +18,7 @@ export class GenerateTokenPairDto {
   @IsEnum(TokenType)
   tokenType: TokenType;
 
-  @IsOptional()
   @Min(60)
   @IsNumber()
-  refreshTokenLifetime?: number;
+  refreshTokenLifetime: number;
 }

@@ -20,9 +20,16 @@ COPY libs libs
 COPY i18n i18n
 COPY protos/auth-users.proto protos/auth-users.proto
 
+COPY apps/auth/prisma apps/auth/prisma
 COPY apps/auth/src apps/auth/src
 COPY apps/auth/package*.json apps/auth/
 COPY apps/auth/tsconfig*.json apps/auth/
 COPY apps/auth/.env apps/auth/.env
 
 RUN pnpm install -r
+
+WORKDIR /usr/src/app/apps/auth
+
+RUN npx prisma generate
+
+WORKDIR /usr/src/app

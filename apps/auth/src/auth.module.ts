@@ -1,4 +1,5 @@
 import {
+  GraphQLModule,
   HeaderResolver,
   HealthModule,
   I18nModule,
@@ -7,9 +8,15 @@ import {
 } from '@app/common';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 import * as Joi from 'joi';
 import { GrpcMetadataResolver } from 'nestjs-i18n';
-import { UsersTokenRedisModule } from './redis/users-token-redis.module';
+import { DevicesModule } from './devices/devices.module';
+import { AuthGuard } from './guards/auth.guard';
+import { OauthModule } from './oauth/oauth.module';
+import { PrismaModule } from './prisma/prisma.module';
+import { TokenRedisModule } from './redis/token-redis.module';
+import { TokenService } from './services/token.service';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -29,11 +36,21 @@ import { UsersModule } from './users/users.module';
       name: 'auth',
       envFilePath: './apps/auth/.env',
     }),
-    UsersTokenRedisModule,
+    TokenRedisModule,
     HealthModule,
+    PrismaModule,
+    GraphQLModule.forRoot(),
     UsersModule,
+    OauthModule,
+    DevicesModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    TokenService,
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+  ],
 })
 export class AuthModule {}

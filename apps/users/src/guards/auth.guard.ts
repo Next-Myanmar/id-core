@@ -1,4 +1,4 @@
-import { checkPublic, getRequestFromContext } from '@app/common';
+import { checkPublic } from '@app/common';
 import { AuthUser, TokenType } from '@app/common/grpc/auth-users';
 import {
   CanActivate,
@@ -8,12 +8,12 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { GqlExecutionContext } from '@nestjs/graphql';
+import { AuthUsersService } from '../../../../libs/common/src/grpc/auth-users/auth-users.service';
 import { AUTH_TOKEN_TYPE_KEY } from '../decorators/auth-token-type.decorator';
-import { Device, User } from '../prisma/generated';
+import { User } from '../prisma/generated';
 import { PrismaService } from '../prisma/prisma.service';
-import { TokenService } from '../token/token.service';
 import { AuthInfo } from '../types/auth-info.interface';
-import { updateLoginHistory } from '../utils/utils';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -30,7 +30,7 @@ export class AuthGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly prisma: PrismaService,
-    private readonly token: TokenService,
+    private readonly authUsers: AuthUsersService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -39,7 +39,18 @@ export class AuthGuard implements CanActivate {
     if (isPublic) {
       return true;
     }
-    const req: any = getRequestFromContext(context);
+
+    const type: string = context.getType();
+    if (type !== 'http' && type !== 'graphql') {
+      return true;
+    }
+
+    let req: any;
+    if (type === 'http') {
+      req = context.switchToHttp().getRequest();
+    } else {
+      req = GqlExecutionContext.create(context).getContext().req;
+    }
 
     let authUser: AuthUser;
 
@@ -52,10 +63,10 @@ export class AuthGuard implements CanActivate {
         throw new UnauthorizedException();
       }
 
-      authUser = await this.token.authenticate(
+      authUser = await this.authUsers.authenticate({
         authorization,
-        req.headers['user-agent'],
-      );
+        ua: req.headers['user-agent'],
+      });
 
       req.headers.auth = authUser;
     }
@@ -75,41 +86,30 @@ export class AuthGuard implements CanActivate {
 
     const condition = this.conditions[authUser.tokenType];
 
-    const { user, device } = await this.getCurrentUserAndDevice(
-      authUser,
-      condition.isUserVerified,
-    );
+    const user = await this.getCurrentUser(authUser, condition.isUserVerified);
 
-    const authInfo: AuthInfo = { authUser, user, device };
+    const authInfo: AuthInfo = { authUser, user };
 
-    req.headers.auth = authInfo;
-
-    if (authTokenTypes.includes(TokenType.Normal)) {
-      await updateLoginHistory(this.prisma, authUser.deviceId);
-    }
+    req.auth = authInfo;
 
     return true;
   }
 
-  private async getCurrentUserAndDevice(
+  private async getCurrentUser(
     authUser: AuthUser,
     isUserVerified: boolean,
-  ): Promise<{ user: User; device: Device }> {
-    const result = await this.prisma.device.findUnique({
+  ): Promise<User> {
+    const user = await this.prisma.user.findUnique({
       where: {
-        id: authUser.deviceId,
-        user: { verified: isUserVerified },
+        id: authUser.userId,
+        verified: isUserVerified,
       },
-      include: { user: true },
     });
 
-    if (!result) {
+    if (!user) {
       throw new UnauthorizedException();
     }
 
-    const user = result.user;
-    const device = result;
-
-    return { user, device };
+    return user;
   }
 }

@@ -6,18 +6,26 @@ import {
   i18nValidationMessage,
   UserAgentDetails,
 } from '@app/common';
-import { TokenPairResponse, TokenType } from '@app/common/grpc/auth-users';
+import {
+  AuthUsersService,
+  TokenPairResponse,
+  TokenType,
+} from '@app/common/grpc/auth-users';
 import {
   NOTIFICATIONS_USERS_SERVERS_NAME,
   SEND_ACTIVATE_USER_EMAIL,
   SendActivateUserEmailDto,
 } from '@app/common/rmq/notifications/users';
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ClientProxy } from '@nestjs/microservices';
-import { Device, PasswordHistory, User } from '../../prisma/generated';
+import { PasswordHistory, User } from '../../prisma/generated';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TransactionalPrismaClient } from '../../prisma/transactional-prisma-client';
-import { TokenService } from '../../token/token.service';
+import {
+  AccessTokenLifetimeKeys,
+  RefreshTokenLifetimeKeys,
+} from '../constants/constants';
 import { SignupDto } from '../dto/signup.dto';
 import { VerificationService } from './verification.service';
 
@@ -26,9 +34,10 @@ export class SignupService {
   private readonly logger = new Logger(SignupService.name);
 
   constructor(
+    private readonly config: ConfigService,
     private readonly prisma: PrismaService,
     private readonly verification: VerificationService,
-    private readonly token: TokenService,
+    private readonly authUsers: AuthUsersService,
     @Inject(NOTIFICATIONS_USERS_SERVERS_NAME)
     private readonly client: ClientProxy,
   ) {}
@@ -43,26 +52,37 @@ export class SignupService {
       return await this.prisma.transaction(async (prisma) => {
         const user = await this.upsertUser(prisma, signupDto);
 
-        const device = await this.upsertDevice(prisma, userAgentDetails, user);
+        const accessLifetimeKey =
+          AccessTokenLifetimeKeys[TokenType.ActivateUser];
+        const refreshLifetimeKey =
+          RefreshTokenLifetimeKeys[TokenType.ActivateUser];
+
+        const accessTokenLifetime = Number(
+          this.config.getOrThrow<number>(accessLifetimeKey),
+        );
+        const refreshTokenLifetime = Number(
+          this.config.getOrThrow<number>(refreshLifetimeKey),
+        );
+
+        const tokenPair = await this.authUsers.generateTokenPair({
+          userId: user.id,
+          ua: userAgentDetails.ua,
+          tokenType: TokenType.ActivateUser,
+          accessTokenLifetime,
+          refreshTokenLifetime,
+        });
 
         await this.createPasswordHist(
           prisma,
           existingUser,
           user,
-          device,
+          tokenPair.deviceId,
           signupDto,
         );
 
         const activationCode = await this.verification.createVerificationCode(
           user.id,
-          device.id,
-          TokenType.ActivateUser,
-        );
-
-        const tokenPair = await this.token.generateTokenPair(
-          user.id,
-          device.id,
-          userAgentDetails.userAgentSource,
+          tokenPair.deviceId,
           TokenType.ActivateUser,
         );
 
@@ -128,52 +148,24 @@ export class SignupService {
     });
   }
 
-  private async upsertDevice(
-    prisma: TransactionalPrismaClient,
-    userAgentDetails: UserAgentDetails,
-    user: User,
-  ): Promise<Device> {
-    return await prisma.device.upsert({
-      where: {
-        userId_userAgentId: {
-          userId: user.id,
-          userAgentId: userAgentDetails.userAgentId,
-        },
-      },
-      update: {
-        userAgentSource: userAgentDetails.userAgentSource,
-      },
-      create: {
-        userId: user.id,
-        userAgentId: userAgentDetails.userAgentId,
-        browser: userAgentDetails.browser,
-        os: userAgentDetails.os,
-        deviceType: userAgentDetails.deviceType,
-        deviceModel: userAgentDetails.deviceModel,
-        deviceVendor: userAgentDetails.deviceVendor,
-        userAgentSource: userAgentDetails.userAgentSource,
-      },
-    });
-  }
-
   private async createPasswordHist(
     prisma: TransactionalPrismaClient,
     existingUser: { passwordHistories: PasswordHistory[] } & User,
     user: User,
-    device: Device,
+    deviceId: string,
     signupDto: SignupDto,
   ): Promise<void> {
     const isAddPasswordHist = !(
       existingUser &&
       ((await compareHash(signupDto.password, existingUser.password)) ||
-        existingUser.passwordHistories[0].deviceId == device.id)
+        existingUser.passwordHistories[0].deviceId == deviceId)
     );
 
     if (isAddPasswordHist) {
       await prisma.passwordHistory.create({
         data: {
           userId: user.id,
-          deviceId: device.id,
+          deviceId,
         },
       });
     }

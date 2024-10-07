@@ -4,6 +4,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import * as Joi from 'joi';
 import { join } from 'path';
 import { AUTH_USERS_PACKAGE_NAME, AUTH_USERS_SERVICE_NAME } from './auth-users';
+import { AuthUsersService } from './auth-users.service';
 
 @Global()
 @Module({})
@@ -34,7 +35,8 @@ export class AuthUsersServiceModule {
           },
         ]),
       ],
-      exports: [ClientsModule],
+      providers: [AuthUsersService],
+      exports: [ClientsModule, AuthUsersService],
     };
   }
 }

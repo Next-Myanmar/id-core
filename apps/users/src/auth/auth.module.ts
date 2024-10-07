@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
-import { TokenService } from '../token/token.service';
 import { ActivateUserController } from './controllers/activate-user.controller';
 import { LoginController } from './controllers/login.controller';
 import { ResendCodeController } from './controllers/resend-code.controller';
@@ -42,7 +41,6 @@ import { VerifyLoginService } from './services/verify-login.service';
   ],
   providers: [
     VerificationService,
-    TokenService,
     SignupService,
     ActivateUserService,
     LoginService,

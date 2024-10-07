@@ -1,3 +1,3 @@
 export * from './constants';
 export * from './dto';
-export * from './users-notifications.module';
+export * from './notifications-users.module';

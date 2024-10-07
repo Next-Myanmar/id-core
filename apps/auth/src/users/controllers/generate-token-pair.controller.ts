@@ -29,15 +29,8 @@ export class GenerateTokenPairController {
         generateTokenPairDto,
       );
 
-    const data: TokenPairResponse = {
-      accessToken: result.accessToken,
-      expiresAt: result.accessTokenExpiresAt.getTime().toString(),
-      tokenType: result.user.tokenType,
-      refreshToken: result.refreshToken,
-    };
-
     this.logger.log('Generate Token Pair End');
 
-    return data;
+    return result;
   }
 }

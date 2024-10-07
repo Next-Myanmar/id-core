@@ -1,0 +1,74 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../src/prisma/generated"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum Grant {
+  authorization_code
+  refresh_token
+}
+
+model ClientOauth {
+  id           String @id @default(auto()) @map("_id") @db.ObjectId
+  clientId     String @unique
+  clientSecret String @unique
+
+  name String
+
+  redirectUris String[]
+  grants       Grant[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  devices Device[]
+}
+
+model Device {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  clientOauth   ClientOauth? @relation(fields: [clientOauthId], references: [id])
+  clientOauthId String?      @db.ObjectId
+
+  userId String @db.ObjectId
+
+  ua String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  loginHistories LoginHistory[]
+}
+
+model LoginHistory {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  device   Device @relation(fields: [deviceId], references: [id])
+  deviceId String @db.ObjectId
+
+  geoip String
+
+  country      String
+  subDivision1 String
+  subDivision2 String
+  city         String
+
+  lastLogin DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([deviceId, geoip])
+}

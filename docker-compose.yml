@@ -1,12 +1,21 @@
 services:
   mongo1:
-    image: mongo:7
+    build:
+      context: ./mongo
+      dockerfile: Dockerfile
     container_name: mongo1
-    command: ['--replSet', 'rs0', '--bind_ip_all']
+    command:
+      [
+        '--replSet',
+        'rs0',
+        '--bind_ip_all',
+        '--keyFile',
+        '/data/configdb/mongo-keyfile',
+      ]
     ports:
       - 27017:27017
     healthcheck:
-      test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mongo1:27017',priority:1},{_id:1,host:'mongo2:27018',priority:0.5},{_id:2,host:'mongo3:27019',priority:0.5}]}) }" | mongosh --port 27017 --quiet
+      test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mongo1:27017',priority:1},{_id:1,host:'mongo2:27018',priority:0.5},{_id:2,host:'mongo3:27019',priority:0.5}]}) }" | mongosh --port 27017 -u $$MONGO_INITDB_ROOT_USERNAME -p $$MONGO_INITDB_ROOT_PASSWORD --authenticationDatabase admin
       interval: 5s
       timeout: 30s
       start_period: 0s
@@ -14,30 +23,85 @@ services:
     volumes:
       - 'mongo1_data:/data/db'
       - 'mongo1_config:/data/configdb'
+    env_file:
+      - .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_AUTH_DB_DATABASE: ${MONGO_AUTH_DB_DATABASE}
+      MONGO_AUTH_DB_USERNAME: ${MONGO_AUTH_DB_USERNAME}
+      MONGO_AUTH_DB_PASSWORD: ${MONGO_AUTH_DB_PASSWORD}
+      MONGO_USERS_DB_DATABASE: ${MONGO_USERS_DB_DATABASE}
+      MONGO_USERS_DB_USERNAME: ${MONGO_USERS_DB_USERNAME}
+      MONGO_USERS_DB_PASSWORD: ${MONGO_USERS_DB_PASSWORD}
     networks:
       - id-core-network
 
   mongo2:
-    image: mongo:7
+    build:
+      context: ./mongo
+      dockerfile: Dockerfile
     container_name: mongo2
-    command: ['--replSet', 'rs0', '--bind_ip_all', '--port', '27018']
+    command:
+      [
+        '--replSet',
+        'rs0',
+        '--bind_ip_all',
+        '--port',
+        '27018',
+        '--keyFile',
+        '/data/configdb/mongo-keyfile',
+      ]
     ports:
       - 27018:27018
     volumes:
       - 'mongo2_data:/data/db'
       - 'mongo2_config:/data/configdb'
+    env_file:
+      - .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_AUTH_DB_DATABASE: ${MONGO_AUTH_DB_DATABASE}
+      MONGO_AUTH_DB_USERNAME: ${MONGO_AUTH_DB_USERNAME}
+      MONGO_AUTH_DB_PASSWORD: ${MONGO_AUTH_DB_PASSWORD}
+      MONGO_USERS_DB_DATABASE: ${MONGO_USERS_DB_DATABASE}
+      MONGO_USERS_DB_USERNAME: ${MONGO_USERS_DB_USERNAME}
+      MONGO_USERS_DB_PASSWORD: ${MONGO_USERS_DB_PASSWORD}
     networks:
       - id-core-network
 
   mongo3:
-    image: mongo:7
+    build:
+      context: ./mongo
+      dockerfile: Dockerfile
     container_name: mongo3
-    command: ['--replSet', 'rs0', '--bind_ip_all', '--port', '27019']
+    command:
+      [
+        '--replSet',
+        'rs0',
+        '--bind_ip_all',
+        '--port',
+        '27019',
+        '--keyFile',
+        '/data/configdb/mongo-keyfile',
+      ]
     ports:
       - 27019:27019
     volumes:
       - 'mongo3_data:/data/db'
       - 'mongo3_config:/data/configdb'
+    env_file:
+      - .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_AUTH_DB_DATABASE: ${MONGO_AUTH_DB_DATABASE}
+      MONGO_AUTH_DB_USERNAME: ${MONGO_AUTH_DB_USERNAME}
+      MONGO_AUTH_DB_PASSWORD: ${MONGO_AUTH_DB_PASSWORD}
+      MONGO_USERS_DB_DATABASE: ${MONGO_USERS_DB_DATABASE}
+      MONGO_USERS_DB_USERNAME: ${MONGO_USERS_DB_USERNAME}
+      MONGO_USERS_DB_PASSWORD: ${MONGO_USERS_DB_PASSWORD}
     networks:
       - id-core-network
 
