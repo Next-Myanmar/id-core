@@ -1,5 +1,5 @@
 import { getUserAgentDetails, UserAgentDetails } from '@app/common';
-import { Device, LoginHistory } from '../../prisma/generated';
+import { Device, LoginHistory } from '@app/prisma/auth';
 import { DeviceEntity } from '../entities/device.entity';
 import { GeoipEntity } from '../entities/geoip.entity';
 import { LoginHistoryEntity } from '../entities/login-history.entity';

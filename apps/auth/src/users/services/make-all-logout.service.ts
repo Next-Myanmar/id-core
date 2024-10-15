@@ -1,8 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PrismaService } from '../../prisma/prisma.service';
-import { TokenService } from '../../services/token.service';
+import { AuthType } from '../../enums/auth-type.enum';
+import { TokensService } from '../../services/tokens.service';
 import { MakeAllLogoutDto } from '../dto/male-all-logout.dto';
+import { AuthPrismaService } from '@app/prisma/auth';
 
 @Injectable()
 export class MakeAllLogoutService {
@@ -10,8 +11,8 @@ export class MakeAllLogoutService {
 
   constructor(
     private readonly config: ConfigService,
-    private readonly prisma: PrismaService,
-    private readonly token: TokenService,
+    private readonly prisma: AuthPrismaService,
+    private readonly token: TokensService,
   ) {}
 
   async makeAllLogout(makeAllLogoutDto: MakeAllLogoutDto) {
@@ -50,12 +51,17 @@ export class MakeAllLogoutService {
     });
 
     const keys = devices.map((device) =>
-      this.token.getKeysInfoKey(device.clientOauthId, device.userId, device.id),
+      this.token.getKeysInfoKey(
+        AuthType.Users,
+        device.clientOauthId,
+        device.userId,
+        device.id,
+      ),
     );
 
     await this.token.transaction(async () => {
       for (const key of keys) {
-        this.token.revokeKeysInfoByKey(key);
+        await this.token.revokeKeysInfoByKey(key);
       }
     });
   }

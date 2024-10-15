@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { Args, Query, Resolver } from '@nestjs/graphql';
-import { CurrentAuthTokenInfo } from '../../decorators/current-auth-token-info.decorator';
-import { AuthTokenInfo } from '../../types/auth-token-info.interface';
+import { CurrentTokenInfo } from '../../decorators/current-token-info.decorator';
+import { TokenInfo } from '../../types/token-info.interface';
 import { GetDeviceDto } from '../dto/get-device.dto';
 import { DeviceLoginHistoriesEntity } from '../entities/device-login-histories.entity';
 import { GetDeviceService } from '../services/get-device.service';
@@ -13,13 +13,13 @@ export class GetDeviceResolver {
 
   @Query(() => DeviceLoginHistoriesEntity)
   async getDevice(
-    @CurrentAuthTokenInfo() authTokenInfo: AuthTokenInfo,
+    @CurrentTokenInfo() tokenInfo: TokenInfo,
     @Args('getDeviceDto') getDeviceDto: GetDeviceDto,
   ): Promise<DeviceLoginHistoriesEntity> {
     this.logger.log('Get Device Start');
 
     const result = await this.getDeviceService.getDevice(
-      authTokenInfo,
+      tokenInfo,
       getDeviceDto,
     );
 

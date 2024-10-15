@@ -17,7 +17,7 @@ export class AuthUsersServiceModule {
           envFilePath,
           isGlobal: true,
           validationSchema: Joi.object({
-            AUTH_GRPC_URL: Joi.string().required(),
+            AUTH_USERS_GRPC_URL: Joi.string().required(),
           }),
         }),
         ClientsModule.registerAsync([
@@ -28,7 +28,7 @@ export class AuthUsersServiceModule {
               options: {
                 package: AUTH_USERS_PACKAGE_NAME,
                 protoPath: join(__dirname, '../../../protos/auth-users.proto'),
-                url: configService.getOrThrow('AUTH_GRPC_URL'),
+                url: configService.getOrThrow('AUTH_USERS_GRPC_URL'),
               },
             }),
             inject: [ConfigService],

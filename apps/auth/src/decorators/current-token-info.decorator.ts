@@ -1,16 +1,14 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { AuthTokenInfo } from '../types/auth-token-info.interface';
 import { GqlExecutionContext } from '@nestjs/graphql';
+import { TokenInfo } from '../types/token-info.interface';
 
-const getCurrentAuthTokenInfoByContext = (
-  context: ExecutionContext,
-): AuthTokenInfo => {
+const getCurrentTokenInfoByContext = (context: ExecutionContext): TokenInfo => {
   const req = GqlExecutionContext.create(context).getContext().req;
 
   return req.auth;
 };
 
-export const CurrentAuthTokenInfo = createParamDecorator(
+export const CurrentTokenInfo = createParamDecorator(
   (_data: unknown, context: ExecutionContext) =>
-    getCurrentAuthTokenInfoByContext(context),
+    getCurrentTokenInfoByContext(context),
 );

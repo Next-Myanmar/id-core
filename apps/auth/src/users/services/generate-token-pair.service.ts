@@ -1,13 +1,14 @@
 import { getUserAgentDetails } from '@app/common';
 import { TokenPairResponse } from '@app/common/grpc/auth-users';
+import { AuthPrismaService, Device } from '@app/prisma/auth';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Device, Grant } from '../../prisma/generated';
-import { PrismaService } from '../../prisma/prisma.service';
-import { TokenService } from '../../services/token.service';
-import { AuthInfo } from '../../types/auth-info.interface';
+import { AuthType } from '../../enums/auth-type.enum';
+import { Grant } from '../../enums/grant.enum';
+import { TokensService } from '../../services/tokens.service';
 import { ClientOauth } from '../../types/client-oauth.interface';
 import { GenerateTokenPairDto } from '../dto/generate-token-pair.dto';
+import { AuthUsersInfo } from '../types/users-auth-info.interface';
 
 @Injectable()
 export class GenerateTokenPairService {
@@ -15,18 +16,19 @@ export class GenerateTokenPairService {
 
   constructor(
     private readonly config: ConfigService,
-    private readonly prisma: PrismaService,
-    private readonly tokenService: TokenService,
+    private readonly prisma: AuthPrismaService,
+    private readonly tokenService: TokensService,
   ) {}
 
   async generateTokenPair(
     generateTokenPairDto: GenerateTokenPairDto,
   ): Promise<TokenPairResponse> {
-    const result = await this.tokenService.transaction(async () => {
+    return await this.tokenService.transaction(async () => {
       const client: ClientOauth = {
         id: this.config.getOrThrow('USERS_APP_CLIENT_OAUTH_ID'),
-        name: 'Users App',
-        grants: [Grant.refresh_token],
+        clientName: 'Users App',
+        grants: [Grant.RefreshToken],
+        redirectUri: '',
       };
 
       const userAgentDetails = getUserAgentDetails(generateTokenPairDto.ua);
@@ -50,32 +52,35 @@ export class GenerateTokenPairService {
           });
         }
 
-        const authInfo: AuthInfo = {
+        const authInfo: AuthUsersInfo = {
           userId: generateTokenPairDto.userId,
           deviceId: device.id,
           userAgentId: userAgentDetails.id,
           tokenType: generateTokenPairDto.tokenType,
-          refreshTokenLifetime: generateTokenPairDto.refreshTokenLifetime,
-          accessTokenLifetime: generateTokenPairDto.accessTokenLifetime,
         };
 
-        return await this.tokenService.saveUsersToken(
+        const currentTime = new Date();
+        const expiresAt = new Date(
+          currentTime.getTime() +
+            generateTokenPairDto.accessTokenLifetime * 1000,
+        );
+
+        const result = await this.tokenService.saveToken(
+          AuthType.Users,
           client,
           authInfo,
           generateTokenPairDto.accessTokenLifetime,
           generateTokenPairDto.refreshTokenLifetime,
         );
+
+        return {
+          accessToken: result.accessToken,
+          expiresAt: expiresAt.getTime().toString(),
+          tokenType: authInfo.tokenType,
+          refreshToken: result.refreshToken,
+          deviceId: authInfo.deviceId,
+        };
       });
     });
-
-    const data: TokenPairResponse = {
-      accessToken: result.accessToken,
-      expiresAt: result.accessTokenExpiresAt.getTime().toString(),
-      tokenType: result.authInfo.tokenType,
-      refreshToken: result.refreshToken,
-      deviceId: result.authInfo.deviceId,
-    };
-
-    return data;
   }
 }

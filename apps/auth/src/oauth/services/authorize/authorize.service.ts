@@ -1,0 +1,155 @@
+import { I18nValidationException, i18nValidationMessage } from '@app/common';
+import { OauthUser } from '@app/prisma/auth';
+import { AuthPrismaService } from '@app/prisma/auth/auth-prisma.service';
+import {
+  ForbiddenException,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { AuthType } from 'apps/auth/src/enums/auth-type.enum';
+import { GrantHelper } from 'apps/auth/src/enums/grant.enum';
+import { Scope, ScopeHelper } from 'apps/auth/src/oauth/enums/scope.enum';
+import { TokensService } from 'apps/auth/src/services/tokens.service';
+import { ClientOauth } from 'apps/auth/src/types/client-oauth.interface';
+import { TokenInfo } from 'apps/auth/src/types/token-info.interface';
+import { getTokenFromAuthorization } from 'apps/auth/src/utils/utils';
+import { Request } from 'express';
+import { AuthorizeDto } from '../../dto/authorize.dto';
+import {
+  ResponseType,
+  ResponseTypeHelper,
+} from '../../enums/response-type.enum';
+import { AuthorizeResponse } from '../../types/authorize.response.interface';
+import { CodeService } from './code.service';
+
+@Injectable()
+export class AuthorizeService {
+  private readonly logger = new Logger(AuthorizeService.name);
+
+  constructor(
+    private readonly prisma: AuthPrismaService,
+    private readonly tokenService: TokensService,
+    private readonly codeService: CodeService,
+  ) {}
+
+  async authorize(
+    req: Request,
+    authorizeDto: AuthorizeDto,
+  ): Promise<AuthorizeResponse> {
+    this.logger.log(`Response Type: ${authorizeDto.response_type}`);
+
+    const client = await this.getClient(
+      authorizeDto.response_type,
+      authorizeDto.client_id,
+    );
+
+    this.validateRedirectUri(client, authorizeDto.redirect_uri);
+
+    const usersTokenInfo = await this.getAccessTokenInfo(req);
+    if (!usersTokenInfo) {
+      throw new UnauthorizedException();
+    }
+
+    const oauthUser = await this.getOauthUser(
+      client,
+      usersTokenInfo,
+      authorizeDto.scopes,
+    );
+    if (!oauthUser) {
+      throw new ForbiddenException();
+    }
+
+    if (authorizeDto.response_type === ResponseType.code) {
+      return await this.codeService.handleCode(
+        client,
+        usersTokenInfo.authInfo.userId,
+        oauthUser,
+        authorizeDto.redirect_uri,
+        authorizeDto.scopes,
+        authorizeDto.code_challenge,
+        authorizeDto.code_challenge_method,
+      );
+    }
+
+    return null;
+  }
+
+  private async getClient(
+    responseType: ResponseType,
+    clientId: string,
+  ): Promise<ClientOauth> {
+    const client = await this.prisma.clientOauth.findUnique({
+      where: {
+        clientId,
+        grants: {
+          has: ResponseTypeHelper.convertToGrantPrisma(responseType),
+        },
+      },
+    });
+
+    if (!client) {
+      throw I18nValidationException.create({
+        property: 'client_id',
+        message: i18nValidationMessage({
+          property: 'property.client_id',
+          message: 'validation.INVALID',
+        }),
+      });
+    }
+
+    return {
+      ...client,
+      grants: client.grants.map((grant) => GrantHelper.convertToGrant(grant)),
+    };
+  }
+
+  private validateRedirectUri(client: ClientOauth, redirectUri: string): void {
+    if (client.redirectUri !== redirectUri) {
+      throw I18nValidationException.create({
+        property: 'redirect_uri',
+        message: i18nValidationMessage({
+          property: 'property.redirect_uri',
+          message: 'validation.INVALID',
+        }),
+      });
+    }
+  }
+
+  private async getAccessTokenInfo(req: Request): Promise<TokenInfo> {
+    const authorization = req.headers?.authorization;
+    if (!authorization) {
+      return null;
+    }
+
+    const accessToken = getTokenFromAuthorization(authorization);
+    this.logger.debug(`AccessToken: ${accessToken}`);
+
+    return await this.tokenService.getAccessToken(AuthType.Users, accessToken);
+  }
+
+  private async getOauthUser(
+    client: ClientOauth,
+    usersTokenInfo: TokenInfo,
+    scopes?: Scope[],
+  ): Promise<OauthUser> {
+    const whereClause: any = {
+      clientOauthId_userId: {
+        clientOauthId: client.id,
+        userId: usersTokenInfo.authInfo.userId,
+      },
+    };
+
+    if (scopes) {
+      whereClause.scopes = {
+        hasEvery: scopes.map((scope) => ScopeHelper.convertToPrisma(scope)),
+      };
+    }
+
+    const oauthUser = await this.prisma.oauthUser.findUnique({
+      where: whereClause,
+    });
+
+    return oauthUser;
+  }
+}

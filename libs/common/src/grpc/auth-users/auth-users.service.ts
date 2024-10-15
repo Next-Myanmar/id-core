@@ -6,7 +6,6 @@ import {
   OnModuleInit,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { ClientGrpc } from '@nestjs/microservices';
 import { catchError, lastValueFrom, throwError } from 'rxjs';
 import {
@@ -26,7 +25,6 @@ export class AuthUsersService implements OnModuleInit {
   private authUsersServiceClient: AuthUsersServiceClient;
 
   constructor(
-    private readonly config: ConfigService,
     @Inject(AUTH_USERS_SERVICE_NAME)
     private readonly clientGrpc: ClientGrpc,
   ) {}

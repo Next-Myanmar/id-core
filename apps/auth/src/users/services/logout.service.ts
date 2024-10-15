@@ -1,16 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { TokenService } from '../../services/token.service';
-import { AuthTokenInfo } from '../../types/auth-token-info.interface';
+import { AuthType } from '../../enums/auth-type.enum';
+import { TokensService } from '../../services/tokens.service';
+import { TokenInfo } from '../../types/token-info.interface';
 
 @Injectable()
 export class LogoutService {
   private readonly logger = new Logger(LogoutService.name);
 
-  constructor(private readonly token: TokenService) {}
+  constructor(private readonly token: TokensService) {}
 
-  async logout({ client, authInfo }: AuthTokenInfo) {
+  async logout({ client, authInfo }: TokenInfo) {
     await this.token.transaction(async () => {
-      await this.token.revokeKeysInfo(client, authInfo);
+      await this.token.revokeKeysInfo(AuthType.Users, client, authInfo);
     });
   }
 }

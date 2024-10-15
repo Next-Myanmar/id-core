@@ -1,17 +1,19 @@
 import { AuthUser } from '@app/common/grpc/auth-users';
+import { AuthPrismaService } from '@app/prisma/auth';
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { TokenService } from '../../services/token.service';
+import { AuthType } from '../../enums/auth-type.enum';
+import { TokensService } from '../../services/tokens.service';
 import { getTokenFromAuthorization } from '../../utils/utils';
 import { AuthenticateDto } from '../dto/authenticate.dto';
+import { AuthUsersInfo } from '../types/users-auth-info.interface';
 
 @Injectable()
 export class AuthenticateService {
   private readonly logger = new Logger(AuthenticateService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly tokenService: TokenService,
+    private readonly prisma: AuthPrismaService,
+    private readonly tokenService: TokensService,
   ) {}
 
   async authenticate(authenticateDto: AuthenticateDto): Promise<AuthUser> {
@@ -21,13 +23,18 @@ export class AuthenticateService {
       authenticateDto.authorization,
     );
 
-    const tokenInfo = await this.tokenService.getAccessToken(accessToken);
+    const tokenInfo = await this.tokenService.getAccessToken(
+      AuthType.Users,
+      accessToken,
+    );
 
     if (!tokenInfo) {
       throw new UnauthorizedException();
     }
 
-    const deviceId = tokenInfo.authInfo.deviceId;
+    const authInfo: AuthUsersInfo = tokenInfo.authInfo as AuthUsersInfo;
+
+    const deviceId = authInfo.deviceId;
     const geoip = '192.168.0.1';
 
     await this.prisma.loginHistory.upsert({
@@ -47,9 +54,9 @@ export class AuthenticateService {
     });
 
     return {
-      userId: tokenInfo.authInfo.userId,
-      deviceId: tokenInfo.authInfo.deviceId,
-      tokenType: tokenInfo.authInfo.tokenType,
+      userId: authInfo.userId,
+      deviceId: authInfo.deviceId,
+      tokenType: authInfo.tokenType,
     };
   }
 }

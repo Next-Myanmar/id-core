@@ -6,6 +6,7 @@ import {
   LoggerModule,
   ThrottlerModule,
 } from '@app/common';
+import { AuthPrismaModule } from '@app/prisma/auth';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
@@ -14,9 +15,8 @@ import { GrpcMetadataResolver } from 'nestjs-i18n';
 import { DevicesModule } from './devices/devices.module';
 import { AuthGuard } from './guards/auth.guard';
 import { OauthModule } from './oauth/oauth.module';
-import { PrismaModule } from './prisma/prisma.module';
 import { TokenRedisModule } from './redis/token-redis.module';
-import { TokenService } from './services/token.service';
+import { TokensService } from './services/tokens.service';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -38,7 +38,7 @@ import { UsersModule } from './users/users.module';
     }),
     TokenRedisModule,
     HealthModule,
-    PrismaModule,
+    AuthPrismaModule,
     GraphQLModule.forRoot(),
     UsersModule,
     OauthModule,
@@ -46,7 +46,7 @@ import { UsersModule } from './users/users.module';
   ],
   controllers: [],
   providers: [
-    TokenService,
+    TokensService,
     {
       provide: APP_GUARD,
       useClass: AuthGuard,

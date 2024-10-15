@@ -1,12 +1,20 @@
-import { AuthInfo } from './auth-info.interface';
+import { AuthType } from '../enums/auth-type.enum';
+import { AuthOauthInfo } from '../oauth/types/auth-oauth-info.interface';
+import { AuthUsersInfo } from '../users/types/users-auth-info.interface';
 import { ClientOauth } from './client-oauth.interface';
 
 export interface TokenInfo {
   accessToken: string;
-  accessTokenExpiresAt: Date;
+
+  accessTokenLifetime: number;
+
   refreshToken?: string;
-  refreshTokenExpiresAt?: Date;
-  scope?: string | string[];
+
+  refreshTokenLifetime?: number;
+
   client: ClientOauth;
-  authInfo: AuthInfo;
+
+  authInfo: AuthUsersInfo | AuthOauthInfo;
+
+  authType: AuthType;
 }

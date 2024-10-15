@@ -1,11 +1,11 @@
 import { I18nValidationException, i18nValidationMessage } from '@app/common';
+import { AuthPrismaService, Device } from '@app/prisma/auth';
 import { Injectable, Logger } from '@nestjs/common';
-import { Device } from '../../prisma/generated';
-import { PrismaService } from '../../prisma/prisma.service';
-import { TokenService } from '../../services/token.service';
-import { AuthInfo } from '../../types/auth-info.interface';
-import { AuthTokenInfo } from '../../types/auth-token-info.interface';
+import { AuthOauthInfo } from '../../oauth/types/auth-oauth-info.interface';
+import { TokensService } from '../../services/tokens.service';
 import { ClientOauth } from '../../types/client-oauth.interface';
+import { TokenInfo } from '../../types/token-info.interface';
+import { AuthUsersInfo } from '../../users/types/users-auth-info.interface';
 import { MakeLogoutDto } from '../dto/make-logout.dto';
 
 @Injectable()
@@ -13,18 +13,27 @@ export class MakeLogoutService {
   private readonly logger = new Logger(MakeLogoutService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly token: TokenService,
+    private readonly prisma: AuthPrismaService,
+    private readonly token: TokensService,
   ) {}
 
   async makeLogout(
-    { client, authInfo }: AuthTokenInfo,
+    tokenInfo: TokenInfo,
     makeLogoutDto?: MakeLogoutDto,
   ): Promise<void> {
-    let devices = await this.checkDevices(client, authInfo, makeLogoutDto);
+    let devices = await this.checkDevices(
+      tokenInfo.client,
+      tokenInfo.authInfo,
+      makeLogoutDto,
+    );
 
     const keys = devices.map((device) =>
-      this.token.getKeysInfoKey(device.clientOauthId, device.userId, device.id),
+      this.token.getKeysInfoKey(
+        tokenInfo.authType,
+        device.clientOauthId,
+        device.userId,
+        device.id,
+      ),
     );
 
     await this.token.transaction(async () => {
@@ -36,7 +45,7 @@ export class MakeLogoutService {
 
   private async checkDevices(
     client: ClientOauth,
-    authInfo: AuthInfo,
+    authInfo: AuthUsersInfo | AuthOauthInfo,
     makeLogoutDto: MakeLogoutDto,
   ): Promise<Device[]> {
     const isCurrentDeviceExist = makeLogoutDto.deviceIds.some(

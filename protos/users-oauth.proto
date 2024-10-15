@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package users.oauth;
+
+service UsersOauthService {
+    rpc getData(DataRequest) returns (DataResponse);
+}
+
+enum Scope {
+    ReadEmail = 0;
+    ReadName = 1;
+}
+
+message DataRequest {
+    string userId = 1;
+    repeated Scope scopes = 2;
+}
+
+message DataResponse {
+    optional string email = 1;
+    optional string firstName = 2;
+    optional string lastName = 3;
+}

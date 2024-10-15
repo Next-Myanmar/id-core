@@ -1,6 +1,6 @@
 import { PrismaClient } from './generated';
 
-export type TransactionalPrismaClient = Omit<
+export type AuthTransactionalPrismaClient = Omit<
   PrismaClient,
   '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
 >;

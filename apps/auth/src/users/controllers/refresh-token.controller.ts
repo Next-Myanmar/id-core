@@ -4,7 +4,6 @@ import {
   UrlEncodedGuard,
   UserAgentDetails,
 } from '@app/common';
-import { TokenPairResponse } from '@app/common/grpc/auth-users';
 import {
   Body,
   Controller,
@@ -19,6 +18,7 @@ import { Throttle } from '@nestjs/throttler';
 import { Request } from 'express';
 import { RefreshTokenDto } from '../dto/refresh-token.dto';
 import { RefreshTokenService } from '../services/refresh-token.service';
+import { TokenPairResponse } from '../types/token-pair-response.interface';
 
 @Controller('api/users')
 export class RefreshTokenController {

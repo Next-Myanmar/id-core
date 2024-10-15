@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { Query, Resolver } from '@nestjs/graphql';
-import { CurrentAuthTokenInfo } from '../../decorators/current-auth-token-info.decorator';
-import { AuthTokenInfo } from '../../types/auth-token-info.interface';
+import { CurrentTokenInfo } from '../../decorators/current-token-info.decorator';
+import { TokenInfo } from '../../types/token-info.interface';
 import { DeviceEntity } from '../entities/device.entity';
 import { GetDevicesService } from '../services/get-devices.service';
 
@@ -13,11 +13,11 @@ export class GetDevicesResolver {
 
   @Query(() => [DeviceEntity])
   async getDevices(
-    @CurrentAuthTokenInfo() authTokenInfo: AuthTokenInfo,
+    @CurrentTokenInfo() tokenInfo: TokenInfo,
   ): Promise<DeviceEntity[]> {
     this.logger.log('Get Devices Start');
 
-    const result = await this.getDevicesService.getDevices(authTokenInfo);
+    const result = await this.getDevicesService.getDevices(tokenInfo);
 
     this.logger.log('Get Devices End');
 

@@ -1,7 +1,6 @@
+import { AuthPrismaService } from '@app/prisma/auth';
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { PrismaService } from '../../prisma/prisma.service';
-import { AuthTokenInfo } from '../../types/auth-token-info.interface';
+import { TokenInfo } from '../../types/token-info.interface';
 import { GetDeviceDto } from '../dto/get-device.dto';
 import { DeviceLoginHistoriesEntity } from '../entities/device-login-histories.entity';
 import {
@@ -13,19 +12,14 @@ import {
 export class GetDeviceService {
   private readonly logger = new Logger(GetDeviceService.name);
 
-  constructor(
-    private readonly config: ConfigService,
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: AuthPrismaService) {}
 
   async getDevice(
-    { client, authInfo }: AuthTokenInfo,
+    tokenInfo: TokenInfo,
     getDeviceDto: GetDeviceDto,
   ): Promise<DeviceLoginHistoriesEntity> {
     const lifetime =
-      authInfo.refreshTokenLifetime ||
-      authInfo.accessTokenLifetime ||
-      Number(this.config.getOrThrow('REFRESH_TOKEN_LIFETIME'));
+      tokenInfo.refreshTokenLifetime || tokenInfo.accessTokenLifetime;
 
     const currentTime = new Date();
     const lifetimeMilliseconds = lifetime * 1000;
@@ -34,8 +28,8 @@ export class GetDeviceService {
     const device = await this.prisma.device.findUniqueOrThrow({
       where: {
         id: getDeviceDto.deviceId,
-        clientOauthId: client.id,
-        userId: authInfo.userId,
+        clientOauthId: tokenInfo.client.id,
+        userId: tokenInfo.authInfo.userId,
         loginHistories: {
           some: {
             lastLogin: {
@@ -56,7 +50,10 @@ export class GetDeviceService {
       },
     });
 
-    const deviceEntity = convertToDeviceEntity(device, authInfo.deviceId);
+    const deviceEntity = convertToDeviceEntity(
+      device,
+      tokenInfo.authInfo.deviceId,
+    );
 
     const loginHistories = device.loginHistories
       .slice(1)

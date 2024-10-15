@@ -1,4 +1,5 @@
 import { checkPublic } from '@app/common';
+import { AuthPrismaService } from '@app/prisma/auth';
 import {
   CanActivate,
   ExecutionContext,
@@ -8,9 +9,9 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { PrismaService } from '../prisma/prisma.service';
-import { TokenService } from '../services/token.service';
-import { AuthTokenInfo } from '../types/auth-token-info.interface';
+import { AuthType } from '../enums/auth-type.enum';
+import { TokensService } from '../services/tokens.service';
+import { TokenInfo } from '../types/token-info.interface';
 import { getTokenFromAuthorization } from '../utils/utils';
 
 @Injectable()
@@ -19,8 +20,8 @@ export class AuthGuard implements CanActivate {
 
   constructor(
     private readonly reflector: Reflector,
-    private readonly prisma: PrismaService,
-    private readonly tokenService: TokenService,
+    private readonly prisma: AuthPrismaService,
+    private readonly tokenService: TokensService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -50,18 +51,19 @@ export class AuthGuard implements CanActivate {
 
     const accessToken = getTokenFromAuthorization(authorization);
 
-    const tokenInfo = await this.tokenService.getAccessToken(accessToken);
+    let tokenInfo: TokenInfo;
+    for (const authType of Object.values(AuthType)) {
+      tokenInfo = await this.tokenService.getAccessToken(authType, accessToken);
+      if (tokenInfo) {
+        break;
+      }
+    }
 
     if (!tokenInfo) {
       throw new UnauthorizedException();
     }
 
-    const authData: AuthTokenInfo = {
-      client: tokenInfo.client,
-      authInfo: tokenInfo.authInfo,
-    };
-
-    req.auth = authData;
+    req.auth = tokenInfo;
 
     const deviceId = tokenInfo.authInfo.deviceId;
     const geoip = '192.168.0.1';

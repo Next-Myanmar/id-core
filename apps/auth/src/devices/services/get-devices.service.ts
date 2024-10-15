@@ -1,9 +1,7 @@
+import { AuthPrismaService, Device, LoginHistory } from '@app/prisma/auth';
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { Device, LoginHistory } from '../../prisma/generated';
-import { PrismaService } from '../../prisma/prisma.service';
-import { TokenService } from '../../services/token.service';
-import { AuthTokenInfo } from '../../types/auth-token-info.interface';
+import { TokensService } from '../../services/tokens.service';
+import { TokenInfo } from '../../types/token-info.interface';
 import { DeviceEntity } from '../entities/device.entity';
 import { convertToDeviceEntity } from '../utils/entity-utils';
 
@@ -12,19 +10,13 @@ export class GetDevicesService {
   private readonly logger = new Logger(GetDevicesService.name);
 
   constructor(
-    private readonly config: ConfigService,
-    private readonly prisma: PrismaService,
-    private readonly token: TokenService,
+    private readonly prisma: AuthPrismaService,
+    private readonly token: TokensService,
   ) {}
 
-  async getDevices({
-    client,
-    authInfo,
-  }: AuthTokenInfo): Promise<DeviceEntity[]> {
+  async getDevices(tokenInfo: TokenInfo): Promise<DeviceEntity[]> {
     const lifetime =
-      authInfo.refreshTokenLifetime ||
-      authInfo.accessTokenLifetime ||
-      Number(this.config.getOrThrow('REFRESH_TOKEN_LIFETIME'));
+      tokenInfo.refreshTokenLifetime || tokenInfo.accessTokenLifetime;
 
     const currentTime = new Date();
     const lifetimeMilliseconds = lifetime * 1000;
@@ -32,8 +24,8 @@ export class GetDevicesService {
 
     let devices = await this.prisma.device.findMany({
       where: {
-        clientOauthId: client.id,
-        userId: authInfo.userId,
+        clientOauthId: tokenInfo.client.id,
+        userId: tokenInfo.authInfo.userId,
         loginHistories: {
           some: {
             lastLogin: {
@@ -59,6 +51,7 @@ export class GetDevicesService {
       devices.reduce(
         (acc, device) => {
           const key = this.token.getKeysInfoKey(
+            tokenInfo.authType,
             device.clientOauthId,
             device.userId,
             device.id,
@@ -80,7 +73,7 @@ export class GetDevicesService {
     });
 
     return sortedDevices.map((device) =>
-      convertToDeviceEntity(device, authInfo.deviceId),
+      convertToDeviceEntity(device, tokenInfo.authInfo.deviceId),
     );
   }
 }

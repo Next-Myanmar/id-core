@@ -1,7 +1,11 @@
-import { Grant } from "../prisma/generated";
+import { Grant } from '../enums/grant.enum';
 
 export interface ClientOauth {
   id: string;
-  name: string;
+
+  clientName: string;
+
   grants: Grant[];
+
+  redirectUri: string;
 }

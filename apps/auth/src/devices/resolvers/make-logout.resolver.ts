@@ -1,9 +1,9 @@
 import { Logger } from '@nestjs/common';
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
-import { CurrentAuthTokenInfo } from '../../decorators/current-auth-token-info.decorator';
-import { AuthTokenInfo } from '../../types/auth-token-info.interface';
+import { CurrentTokenInfo } from '../../decorators/current-token-info.decorator';
 import { MakeLogoutDto } from '../dto/make-logout.dto';
 import { MakeLogoutService } from '../services/make-logout.service';
+import { TokenInfo } from '../../types/token-info.interface';
 
 @Resolver()
 export class MakeLogoutResolver {
@@ -13,13 +13,13 @@ export class MakeLogoutResolver {
 
   @Mutation(() => Boolean)
   async makeLogout(
-    @CurrentAuthTokenInfo() authTokenInfo: AuthTokenInfo,
+    @CurrentTokenInfo() tokenInfo: TokenInfo,
     @Args('makeLogoutDto')
     makeLogoutDto: MakeLogoutDto,
   ): Promise<boolean> {
     this.logger.log('Make Logout Start');
 
-    await this.makeLogoutService.makeLogout(authTokenInfo, makeLogoutDto);
+    await this.makeLogoutService.makeLogout(tokenInfo, makeLogoutDto);
 
     this.logger.log('Make Logout End');
 

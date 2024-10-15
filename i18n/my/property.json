@@ -7,6 +7,20 @@
   "DateOfBirth": "မွေးသက္ကရာဇ်",
   "Gender": "ကျား/မ",
   "Code": "ကုဒ်",
-  "RefreshToken": "Refresh Token",
-  "DeviceId": "Device Id "
+  "RefreshToken": "Refresh Token ",
+  "response_type": "response_type ",
+  "client_id": "client_id ",
+  "redirect_uri": "redirect_uri ",
+  "code_challenge": "code_challenge ",
+  "code_challenge_method": "code_challenge_method ",
+  "scopes": "scopes ",
+  "code": "code ",
+  "client_secret": "client_secret ",
+  "grant_type": "grant_type ",
+  "code_verifier": "code_verifier ",
+  "refresh_token": "refresh_token ",
+  "ClientName": "Client Name ",
+  "ClientSecretName": "Client Secret Name ",
+  "RedirectUri": "Redirect Uri ",
+  "Grants": "Grants "
 }

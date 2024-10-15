@@ -6,34 +6,71 @@
 
 generator client {
   provider      = "prisma-client-js"
-  output        = "../src/prisma/generated"
+  output        = "../../../libs/prisma/src/auth/generated"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
   provider = "mongodb"
-  url      = env("DATABASE_URL")
+  url      = env("AUTH_DATABASE_URL")
 }
 
 enum Grant {
-  authorization_code
-  refresh_token
+  AuthorizationCode
+  RefreshToken
+}
+
+enum Scope {
+  ReadEmail
+  ReadName
 }
 
 model ClientOauth {
-  id           String @id @default(auto()) @map("_id") @db.ObjectId
-  clientId     String @unique
-  clientSecret String @unique
+  id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  name String
+  clientId   String @unique
+  clientName String @unique
 
-  redirectUris String[]
-  grants       Grant[]
+  redirectUri String
+  grants      Grant[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  devices Device[]
+  clientSecrets ClientSecret[]
+  oauthUsers    OauthUser[]
+  devices       Device[]
+}
+
+model ClientSecret {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  clientOauth   ClientOauth? @relation(fields: [clientOauthId], references: [id])
+  clientOauthId String?      @db.ObjectId
+
+  name   String @unique
+  secret String @unique
+
+  isDeleted Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OauthUser {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  clientOauth   ClientOauth? @relation(fields: [clientOauthId], references: [id])
+  clientOauthId String?      @db.ObjectId
+
+  userId String @db.ObjectId
+
+  scopes Scope[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([clientOauthId, userId])
 }
 
 model Device {

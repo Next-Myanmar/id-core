@@ -1,5 +1,5 @@
-import { generateClientId, generateClientSecret } from '../utils/utils';
-import { Grant, PrismaClient } from './generated';
+import { generateClientId } from '../../../../apps/auth/src/utils/utils';
+import { Grant, PrismaClient } from '../../../../apps/auth/src/prisma/generated';
 
 const prisma = new PrismaClient();
 
@@ -7,9 +7,9 @@ async function createUsersApp() {
   const client = await prisma.clientOauth.create({
     data: {
       clientId: generateClientId(),
-      clientSecret: generateClientSecret(),
-      grants: [Grant.refresh_token],
-      name: 'Users App',
+      redirectUri: '',
+      grants: [Grant.RefreshToken],
+      clientName: 'Users App',
     },
   });
 
