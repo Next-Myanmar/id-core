@@ -1,5 +1,5 @@
 import { EmailService } from '@app/common';
-import { SendWelcomeUserEmailDto } from '@app/common/rmq/notifications/users';
+import { SendWelcomeUserEmailDto } from '@app/rmq/notifications-users';
 import { Inject, Injectable } from '@nestjs/common';
 import { SEND_WELCOME_USER_EMAIL_PROVIDER } from '../email-modules/welcome-user-email.module';
 

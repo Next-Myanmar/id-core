@@ -1,4 +1,4 @@
-import { TokenType } from '@app/common/grpc/auth-users';
+import { TokenType } from '@app/grpc/auth-users';
 import { Controller, HttpCode, HttpStatus, Logger, Post } from '@nestjs/common';
 import { AuthTokenTypes } from '../../decorators/auth-token-type.decorator';
 import { CurrentAuthInfo } from '../../decorators/current-auth-info.decorator';

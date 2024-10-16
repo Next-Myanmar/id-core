@@ -5,7 +5,7 @@ import {
   i18nValidationMessage,
   RedisService,
 } from '@app/common';
-import { TokenType } from '@app/common/grpc/auth-users';
+import { TokenType } from '@app/grpc/auth-users';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { VERIFICATION_REDIS_PROVIDER } from '../../redis/verification-redis.module';

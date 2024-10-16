@@ -2,7 +2,7 @@ import {
   AUTH_USERS_SERVICE_NAME,
   METHOD_GENERATE_TOKEN_PAIR,
   TokenPairResponse,
-} from '@app/common/grpc/auth-users';
+} from '@app/grpc/auth-users';
 import { Controller, Logger } from '@nestjs/common';
 import { GrpcMethod, Payload } from '@nestjs/microservices';
 import { GenerateTokenPairDto } from '../dto/generate-token-pair.dto';

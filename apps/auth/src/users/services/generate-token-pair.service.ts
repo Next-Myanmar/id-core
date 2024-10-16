@@ -1,5 +1,5 @@
 import { getUserAgentDetails } from '@app/common';
-import { TokenPairResponse } from '@app/common/grpc/auth-users';
+import { TokenPairResponse } from '@app/grpc/auth-users';
 import { AuthPrismaService, Device } from '@app/prisma/auth';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';

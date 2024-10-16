@@ -1,5 +1,5 @@
+import { User } from '@app/prisma/users';
 import { Injectable, Logger } from '@nestjs/common';
-import { User } from '../../prisma/generated';
 import { PersonalDetailsEntity } from '../entities/personal-details.entity';
 import { convertToUserEntity } from '../utils/entity-utils';
 

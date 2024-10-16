@@ -3,16 +3,11 @@ import {
   I18nValidationException,
   i18nValidationMessage,
 } from '@app/common';
-import {
-  AuthUser,
-  AuthUsersService,
-  TokenType,
-} from '@app/common/grpc/auth-users';
+import { AuthUser, AuthUsersService, TokenType } from '@app/grpc/auth-users';
+import { User, UsersPrismaService } from '@app/prisma/users';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RefreshTokenLifetimeKeys } from '../../auth/constants/constants';
-import { User } from '../../prisma/generated';
-import { PrismaService } from '../../prisma/prisma.service';
 import { updateUserPassword } from '../../utils/utils';
 import { ChangePasswordDto } from '../dto/chage-password.dto';
 
@@ -22,7 +17,7 @@ export class ChangePasswordService {
 
   constructor(
     private readonly config: ConfigService,
-    private readonly prisma: PrismaService,
+    private readonly prisma: UsersPrismaService,
     private readonly authUsers: AuthUsersService,
   ) {}
 

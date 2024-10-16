@@ -1,5 +1,5 @@
-import { generateClientId } from '../../../../apps/auth/src/utils/utils';
-import { Grant, PrismaClient } from '../../../../apps/auth/src/prisma/generated';
+import { Grant, PrismaClient } from '@app/prisma/auth';
+import { generateClientId } from '../utils/utils';
 
 const prisma = new PrismaClient();
 

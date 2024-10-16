@@ -9,17 +9,16 @@ import {
   AuthUsersService,
   TokenPairResponse,
   TokenType,
-} from '@app/common/grpc/auth-users';
+} from '@app/grpc/auth-users';
+import { User, UsersPrismaService } from '@app/prisma/users';
 import {
   NOTIFICATIONS_USERS_SERVERS_NAME,
   SEND_VERIFY_LOGIN_EMAIL,
   SendVerifyLoginEmailDto,
-} from '@app/common/rmq/notifications/users';
+} from '@app/rmq/notifications-users';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ClientProxy } from '@nestjs/microservices';
-import { User } from '../../prisma/generated';
-import { PrismaService } from '../../prisma/prisma.service';
 import {
   AccessTokenLifetimeKeys,
   RefreshTokenLifetimeKeys,
@@ -33,7 +32,7 @@ export class LoginService {
 
   constructor(
     private readonly config: ConfigService,
-    private readonly prisma: PrismaService,
+    private readonly prisma: UsersPrismaService,
     private readonly verification: VerificationService,
     private readonly authUsers: AuthUsersService,
     @Inject(NOTIFICATIONS_USERS_SERVERS_NAME)

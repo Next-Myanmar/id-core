@@ -1,4 +1,4 @@
-import { UsersOauthServiceModule } from '@app/common/grpc/users-oauth';
+import { UsersOauthServiceModule } from '@app/grpc/users-oauth';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';

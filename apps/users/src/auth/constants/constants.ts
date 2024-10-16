@@ -1,4 +1,4 @@
-import { TokenType } from '@app/common/grpc/auth-users';
+import { TokenType } from '@app/grpc/auth-users';
 
 export const AccessTokenLifetimeKeys: Record<TokenType, string> = {
   [TokenType.Normal]: 'NORMAL_ACCESS_LIFETIME',

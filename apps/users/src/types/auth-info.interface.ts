@@ -1,5 +1,5 @@
-import { AuthUser } from '@app/common/grpc/auth-users';
-import { User } from '../prisma/generated';
+import { AuthUser } from '@app/grpc/auth-users';
+import { User } from '@app/prisma/users';
 
 export interface AuthInfo {
   authUser: AuthUser;

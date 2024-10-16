@@ -3,7 +3,7 @@ import {
   AuthUsersService,
   TokenPairResponse,
   TokenType,
-} from '@app/common/grpc/auth-users';
+} from '@app/grpc/auth-users';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthInfo } from '../../types/auth-info.interface';

@@ -6,15 +6,15 @@ import {
   LoggerModule,
   ThrottlerModule,
 } from '@app/common';
-import { AuthUsersServiceModule } from '@app/common/grpc/auth-users';
-import { NotificationsUsersModule } from '@app/common/rmq/notifications/users';
+import { AuthUsersServiceModule } from '@app/grpc/auth-users';
+import { UsersPrismaModule } from '@app/prisma/users';
+import { NotificationsUsersModule } from '@app/rmq/notifications-users';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import * as Joi from 'joi';
 import { AuthModule } from './auth/auth.module';
 import { AuthGuard } from './guards/auth.guard';
-import { PrismaModule } from './prisma/prisma.module';
 import { ProfileModule } from './profile/profile.module';
 import { VerificationRedisModule } from './redis/verification-redis.module';
 
@@ -25,7 +25,7 @@ import { VerificationRedisModule } from './redis/verification-redis.module';
       isGlobal: true,
       validationSchema: Joi.object({
         HTTP_PORT_USERS: Joi.number().required(),
-        DATABASE_URL: Joi.string().required(),
+        USERS_DATABASE_URL: Joi.string().required(),
       }),
     }),
     LoggerModule,
@@ -38,7 +38,7 @@ import { VerificationRedisModule } from './redis/verification-redis.module';
     }),
     GraphQLModule.forRoot(),
     VerificationRedisModule,
-    PrismaModule,
+    UsersPrismaModule,
     HealthModule,
     AuthUsersServiceModule.forRootAsync({ envFilePath: './apps/users/.env' }),
     NotificationsUsersModule.forRootAsync({

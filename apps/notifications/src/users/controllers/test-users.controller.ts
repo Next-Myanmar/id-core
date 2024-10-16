@@ -4,7 +4,7 @@ import {
   SEND_ACTIVATE_USER_EMAIL,
   SEND_VERIFY_LOGIN_EMAIL,
   SEND_WELCOME_USER_EMAIL,
-} from '@app/common/rmq/notifications/users';
+} from '@app/rmq/notifications-users';
 import { Body, Controller, Inject, Post } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 

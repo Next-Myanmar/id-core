@@ -10,18 +10,21 @@ import {
   AuthUsersService,
   TokenPairResponse,
   TokenType,
-} from '@app/common/grpc/auth-users';
+} from '@app/grpc/auth-users';
+import {
+  PasswordHistory,
+  User,
+  UsersPrismaService,
+  UsersTransactionalPrismaClient,
+} from '@app/prisma/users';
 import {
   NOTIFICATIONS_USERS_SERVERS_NAME,
   SEND_ACTIVATE_USER_EMAIL,
   SendActivateUserEmailDto,
-} from '@app/common/rmq/notifications/users';
+} from '@app/rmq/notifications-users';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ClientProxy } from '@nestjs/microservices';
-import { PasswordHistory, User } from '../../prisma/generated';
-import { PrismaService } from '../../prisma/prisma.service';
-import { TransactionalPrismaClient } from '../../prisma/transactional-prisma-client';
 import {
   AccessTokenLifetimeKeys,
   RefreshTokenLifetimeKeys,
@@ -35,7 +38,7 @@ export class SignupService {
 
   constructor(
     private readonly config: ConfigService,
-    private readonly prisma: PrismaService,
+    private readonly prisma: UsersPrismaService,
     private readonly verification: VerificationService,
     private readonly authUsers: AuthUsersService,
     @Inject(NOTIFICATIONS_USERS_SERVERS_NAME)
@@ -128,7 +131,7 @@ export class SignupService {
   }
 
   private async upsertUser(
-    prisma: TransactionalPrismaClient,
+    prisma: UsersTransactionalPrismaClient,
     signupDto: SignupDto,
   ): Promise<User> {
     const hashedPassword = await hash(signupDto.password);
@@ -149,7 +152,7 @@ export class SignupService {
   }
 
   private async createPasswordHist(
-    prisma: TransactionalPrismaClient,
+    prisma: UsersTransactionalPrismaClient,
     existingUser: { passwordHistories: PasswordHistory[] } & User,
     user: User,
     deviceId: string,

@@ -6,14 +6,14 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { Prisma, PrismaClient } from './generated';
-import { TransactionalPrismaClient } from './transactional-prisma-client';
+import { UsersTransactionalPrismaClient } from './users-transactional-prisma-client';
 
 @Injectable()
-export class PrismaService
+export class UsersPrismaService
   extends PrismaClient
   implements OnModuleInit, OnModuleDestroy
 {
-  private readonly logger = new Logger(PrismaService.name);
+  private readonly logger = new Logger(UsersPrismaService.name);
 
   async onModuleInit() {
     await this.$connect();
@@ -28,7 +28,7 @@ export class PrismaService
   }
 
   async transaction<T>(
-    callback: (prisma: TransactionalPrismaClient) => Promise<T>,
+    callback: (prisma: UsersTransactionalPrismaClient) => Promise<T>,
   ): Promise<T> {
     const MAX_RETRIES = 5;
     let retries = 0;

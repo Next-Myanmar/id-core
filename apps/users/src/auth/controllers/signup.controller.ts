@@ -1,5 +1,5 @@
 import { CurrentUserAgent, Public, UserAgentDetails } from '@app/common';
-import { TokenPairResponse } from '@app/common/grpc/auth-users';
+import { TokenPairResponse } from '@app/grpc/auth-users';
 import {
   Body,
   Controller,

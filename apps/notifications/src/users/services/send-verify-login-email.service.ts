@@ -1,5 +1,5 @@
 import { EmailService } from '@app/common';
-import { SendVerifyLoginEmailDto } from '@app/common/rmq/notifications/users';
+import { SendVerifyLoginEmailDto } from '@app/rmq/notifications-users';
 import { Inject, Injectable } from '@nestjs/common';
 import { SEND_VERIFY_LOGIN_EMAIL_PROVIDER } from '../email-modules/verify-login-email.module';
 

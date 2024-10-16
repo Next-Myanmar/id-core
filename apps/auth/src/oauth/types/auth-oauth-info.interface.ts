@@ -1,4 +1,4 @@
-import { DataResponse } from '@app/common/grpc/users-oauth';
+import { DataResponse } from '@app/grpc/users-oauth';
 import { Scope } from '../enums/scope.enum';
 
 export interface AuthOauthInfo {

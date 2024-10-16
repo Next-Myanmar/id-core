@@ -1,4 +1,4 @@
-import { AuthUser } from '@app/common/grpc/auth-users';
+import { AuthUser } from '@app/grpc/auth-users';
 import { AuthPrismaService } from '@app/prisma/auth';
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { AuthType } from '../../enums/auth-type.enum';

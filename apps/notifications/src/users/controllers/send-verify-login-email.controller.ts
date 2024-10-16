@@ -2,7 +2,7 @@ import { I18nExceptionFilter, I18nValidationPipe } from '@app/common';
 import {
   SEND_VERIFY_LOGIN_EMAIL,
   SendVerifyLoginEmailDto,
-} from '@app/common/rmq/notifications/users';
+} from '@app/rmq/notifications-users';
 import {
   Controller,
   Logger,

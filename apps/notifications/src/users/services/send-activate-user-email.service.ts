@@ -1,5 +1,5 @@
 import { EmailService } from '@app/common';
-import { SendActivateUserEmailDto } from '@app/common/rmq/notifications/users';
+import { SendActivateUserEmailDto } from '@app/rmq/notifications-users';
 import { Inject, Injectable } from '@nestjs/common';
 import { SEND_ACTIVATE_USER_EMAIL_PROVIDER } from '../email-modules/activate-user-email.module';
 

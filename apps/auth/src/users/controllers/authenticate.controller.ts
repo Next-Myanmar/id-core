@@ -2,7 +2,7 @@ import {
   AUTH_USERS_SERVICE_NAME,
   AuthUser,
   METHOD_AUTHENTICATE,
-} from '@app/common/grpc/auth-users';
+} from '@app/grpc/auth-users';
 import { Controller, Logger } from '@nestjs/common';
 import { GrpcMethod, Payload } from '@nestjs/microservices';
 import { AuthenticateDto } from '../dto/authenticate.dto';

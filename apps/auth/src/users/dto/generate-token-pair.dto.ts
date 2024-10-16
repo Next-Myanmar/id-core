@@ -1,4 +1,4 @@
-import { TokenType } from '@app/common/grpc/auth-users';
+import { TokenType } from '@app/grpc/auth-users';
 import { IsEnum, IsNotEmpty, IsNumber, IsOptional, Min } from 'class-validator';
 
 export class GenerateTokenPairDto {

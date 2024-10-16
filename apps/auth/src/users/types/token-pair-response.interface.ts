@@ -1,4 +1,4 @@
-import { TokenType } from '@app/common/grpc/auth-users';
+import { TokenType } from '@app/grpc/auth-users';
 
 export interface TokenPairResponse {
   accessToken: string;

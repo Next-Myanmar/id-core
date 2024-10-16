@@ -1,4 +1,4 @@
-import { NotificationsUsersModule } from '@app/common/rmq/notifications/users';
+import { NotificationsUsersModule } from '@app/rmq/notifications-users';
 import { Module } from '@nestjs/common';
 import { TestUsersController } from './controllers/test-users.controller';
 

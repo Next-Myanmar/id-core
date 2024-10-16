@@ -3,6 +3,8 @@ import {
   i18nValidationMessage,
   UserAgentDetails,
 } from '@app/common';
+import { UsersOauthService } from '@app/grpc/users-oauth';
+import { AuthPrismaService } from '@app/prisma/auth';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createHash } from 'crypto';
@@ -15,8 +17,6 @@ import { AuthOauthInfo } from '../../types/auth-oauth-info.interface';
 import { AuthorizationCodeInfo } from '../../types/authorization-code-info.interface';
 import { TokenPairResponse } from '../../types/token-pair-response.interface';
 import { base64urlencode } from '../../utils/base64';
-import { AuthPrismaService } from '@app/prisma/auth';
-import { UsersOauthService } from '@app/common/grpc/users-oauth';
 
 @Injectable()
 export class AuthorizationCodeService {

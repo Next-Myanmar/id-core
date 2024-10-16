@@ -4,18 +4,20 @@ import {
   AuthUsersService,
   TokenPairResponse,
   TokenType,
-} from '@app/common/grpc/auth-users';
+} from '@app/grpc/auth-users';
+import {
+  User,
+  UsersPrismaService,
+  UsersTransactionalPrismaClient,
+} from '@app/prisma/users';
 import {
   NOTIFICATIONS_USERS_SERVERS_NAME,
   SEND_WELCOME_USER_EMAIL,
   SendWelcomeUserEmailDto,
-} from '@app/common/rmq/notifications/users';
+} from '@app/rmq/notifications-users';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ClientProxy } from '@nestjs/microservices';
-import { User } from '../../prisma/generated';
-import { PrismaService } from '../../prisma/prisma.service';
-import { TransactionalPrismaClient } from '../../prisma/transactional-prisma-client';
 import { AuthInfo } from '../../types/auth-info.interface';
 import {
   AccessTokenLifetimeKeys,
@@ -30,7 +32,7 @@ export class ActivateUserService {
 
   constructor(
     private readonly config: ConfigService,
-    private readonly prisma: PrismaService,
+    private readonly prisma: UsersPrismaService,
     private readonly verification: VerificationService,
     private readonly authUsers: AuthUsersService,
     @Inject(NOTIFICATIONS_USERS_SERVERS_NAME)
@@ -90,7 +92,7 @@ export class ActivateUserService {
   }
 
   private async updateUserToVerified(
-    prisma: TransactionalPrismaClient,
+    prisma: UsersTransactionalPrismaClient,
     authUser: AuthUser,
   ): Promise<User> {
     const user = await prisma.user.update({

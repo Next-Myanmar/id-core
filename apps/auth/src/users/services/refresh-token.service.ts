@@ -1,5 +1,5 @@
 import { UserAgentDetails } from '@app/common';
-import { TokenType } from '@app/common/grpc/auth-users';
+import { TokenType } from '@app/grpc/auth-users';
 import { AuthPrismaService } from '@app/prisma/auth';
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { Request } from 'express';

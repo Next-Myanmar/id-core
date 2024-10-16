@@ -1,5 +1,5 @@
 import { I18nExceptionFilter, I18nValidationPipe } from '@app/common';
-import { AUTH_USERS_PACKAGE_NAME } from '@app/common/grpc/auth-users';
+import { AUTH_USERS_PACKAGE_NAME } from '@app/grpc/auth-users';
 import { ReflectionService } from '@grpc/reflection';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import { ConfigService } from '@nestjs/config';

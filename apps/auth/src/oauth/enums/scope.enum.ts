@@ -1,4 +1,4 @@
-import { Scope as ScopeGrpc } from '@app/common/grpc/users-oauth';
+import { Scope as ScopeGrpc } from '@app/grpc/users-oauth';
 import { Scope as ScopePrisma } from '@app/prisma/auth';
 
 export enum Scope {

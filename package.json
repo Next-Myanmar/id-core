@@ -107,7 +107,9 @@
     ],
     "moduleNameMapper": {
       "^@app/common(|/.*)$": "<rootDir>/libs/common/src/$1",
-      "^@app/prisma(|/.*)$": "<rootDir>/libs/prisma/src/$1"
+      "^@app/prisma(|/.*)$": "<rootDir>/libs/prisma/src/$1",
+      "^@app/grpc(|/.*)$": "<rootDir>/libs/grpc/src/$1",
+      "^@app/rmq(|/.*)$": "<rootDir>/libs/rmq/src/$1"
     }
   }
 }

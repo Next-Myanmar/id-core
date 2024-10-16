@@ -1,10 +1,8 @@
 import { hash } from '@app/common';
-import { PasswordHistory, User } from '../prisma/generated';
-import { PrismaService } from '../prisma/prisma.service';
-import { TransactionalPrismaClient } from '../prisma/transactional-prisma-client';
+import { PasswordHistory, User, UsersPrismaService, UsersTransactionalPrismaClient } from '@app/prisma/users';
 
 export async function createPasswordHistory(
-  prisma: PrismaService | TransactionalPrismaClient,
+  prisma: UsersPrismaService | UsersTransactionalPrismaClient,
   userId: string,
   deviceId: string,
 ): Promise<PasswordHistory> {
@@ -19,7 +17,7 @@ export async function createPasswordHistory(
 }
 
 export async function updateUserPassword(
-  prisma: TransactionalPrismaClient,
+  prisma: UsersTransactionalPrismaClient,
   userId: string,
   deviceId: string,
   newPassword: string,

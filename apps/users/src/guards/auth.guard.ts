@@ -1,5 +1,6 @@
 import { checkPublic } from '@app/common';
-import { AuthUser, TokenType } from '@app/common/grpc/auth-users';
+import { AuthUser, TokenType } from '@app/grpc/auth-users';
+import { User, UsersPrismaService } from '@app/prisma/users';
 import {
   CanActivate,
   ExecutionContext,
@@ -9,10 +10,8 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { AuthUsersService } from '../../../../libs/common/src/grpc/auth-users/auth-users.service';
+import { AuthUsersService } from '../../../../libs/grpc/src/auth-users/auth-users.service';
 import { AUTH_TOKEN_TYPE_KEY } from '../decorators/auth-token-type.decorator';
-import { User } from '../prisma/generated';
-import { PrismaService } from '../prisma/prisma.service';
 import { AuthInfo } from '../types/auth-info.interface';
 
 @Injectable()
@@ -29,7 +28,7 @@ export class AuthGuard implements CanActivate {
 
   constructor(
     private readonly reflector: Reflector,
-    private readonly prisma: PrismaService,
+    private readonly prisma: UsersPrismaService,
     private readonly authUsers: AuthUsersService,
   ) {}
 

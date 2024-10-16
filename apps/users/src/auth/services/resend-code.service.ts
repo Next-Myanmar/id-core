@@ -1,15 +1,15 @@
 import { emitEmail } from '@app/common';
-import { TokenType } from '@app/common/grpc/auth-users';
+import { TokenType } from '@app/grpc/auth-users';
+import { User } from '@app/prisma/users';
 import {
   NOTIFICATIONS_USERS_SERVERS_NAME,
   SEND_ACTIVATE_USER_EMAIL,
   SEND_VERIFY_LOGIN_EMAIL,
   SendActivateUserEmailDto,
   SendVerifyLoginEmailDto,
-} from '@app/common/rmq/notifications/users';
+} from '@app/rmq/notifications-users';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { User } from '../../prisma/generated';
 import { AuthInfo } from '../../types/auth-info.interface';
 import { VerificationService } from './verification.service';
 

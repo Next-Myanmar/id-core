@@ -1,4 +1,4 @@
-import { TokenType } from '@app/common/grpc/auth-users';
+import { TokenType } from '@app/grpc/auth-users';
 import { SetMetadata } from '@nestjs/common';
 
 export const AUTH_TOKEN_TYPE_KEY = 'auth-token-types';
