@@ -16,7 +16,7 @@ import { DevicesModule } from './devices/devices.module';
 import { AuthGuard } from './guards/auth.guard';
 import { OauthModule } from './oauth/oauth.module';
 import { TokenRedisModule } from './redis/token-redis.module';
-import { TokensService } from './services/tokens.service';
+import { TokenGeneratorService } from './services/token-generator.service';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -47,7 +47,7 @@ import { UsersModule } from './users/users.module';
   ],
   controllers: [],
   providers: [
-    TokensService,
+    TokenGeneratorService,
     {
       provide: APP_GUARD,
       useClass: AuthGuard,

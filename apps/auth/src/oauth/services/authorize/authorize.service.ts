@@ -10,7 +10,7 @@ import {
 import { AuthType } from 'apps/auth/src/enums/auth-type.enum';
 import { GrantHelper } from 'apps/auth/src/enums/grant.enum';
 import { Scope, ScopeHelper } from 'apps/auth/src/oauth/enums/scope.enum';
-import { TokensService } from 'apps/auth/src/services/tokens.service';
+import { TokenGeneratorService } from 'apps/auth/src/services/token-generator.service';
 import { ClientOauth } from 'apps/auth/src/types/client-oauth.interface';
 import { TokenInfo } from 'apps/auth/src/types/token-info.interface';
 import { getTokenFromAuthorization } from 'apps/auth/src/utils/utils';
@@ -29,7 +29,7 @@ export class AuthorizeService {
 
   constructor(
     private readonly prisma: AuthPrismaService,
-    private readonly tokenService: TokensService,
+    private readonly tokenService: TokenGeneratorService,
     private readonly codeService: CodeService,
   ) {}
 
@@ -43,9 +43,8 @@ export class AuthorizeService {
     const client = await this.getClient(
       authorizeDto.response_type,
       authorizeDto.client_id,
+      authorizeDto.redirect_uri,
     );
-
-    this.validateRedirectUri(client, authorizeDto.redirect_uri);
 
     const usersTokenInfo = await this.getAccessTokenInfo(req);
     if (!usersTokenInfo) {
@@ -89,6 +88,7 @@ export class AuthorizeService {
   private async getClient(
     responseType: ResponseType,
     clientId: string,
+    redirectUri: string,
   ): Promise<ClientOauth> {
     const client = await this.prisma.clientOauth.findUnique({
       where: {
@@ -96,6 +96,9 @@ export class AuthorizeService {
         grants: {
           has: ResponseTypeHelper.convertToGrantPrisma(responseType),
         },
+      },
+      include: {
+        clientSecrets: true,
       },
     });
 
@@ -109,16 +112,6 @@ export class AuthorizeService {
       });
     }
 
-    return {
-      id: client.id,
-      clientId: client.clientId,
-      clientName: client.clientName,
-      grants: client.grants.map((grant) => GrantHelper.convertToGrant(grant)),
-      redirectUri: client.redirectUri,
-    };
-  }
-
-  private validateRedirectUri(client: ClientOauth, redirectUri: string): void {
     if (client.redirectUri !== redirectUri) {
       throw I18nValidationException.create({
         property: 'redirect_uri',
@@ -128,6 +121,12 @@ export class AuthorizeService {
         }),
       });
     }
+
+    return {
+      id: client.id,
+      clientId: client.clientId,
+      grants: client.grants.map((grant) => GrantHelper.convertToGrant(grant)),
+    };
   }
 
   private async getAccessTokenInfo(req: Request): Promise<TokenInfo> {

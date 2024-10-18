@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
-import { GetDataController } from './controllers/get-data.controller';
-import { GetDataService } from './services/get-data.service';
+import { GetProfileController } from './controllers/get-profile.controller';
+import { GetProfileService } from './services/get-data.service';
 
 @Module({
   imports: [
@@ -15,7 +15,7 @@ import { GetDataService } from './services/get-data.service';
       }),
     }),
   ],
-  controllers: [GetDataController],
-  providers: [GetDataService],
+  controllers: [GetProfileController],
+  providers: [GetProfileService],
 })
 export class OauthModule {}

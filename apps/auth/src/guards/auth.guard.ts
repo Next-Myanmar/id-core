@@ -10,7 +10,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { AuthType } from '../enums/auth-type.enum';
-import { TokensService } from '../services/tokens.service';
+import { TokenGeneratorService } from '../services/token-generator.service';
 import { TokenInfo } from '../types/token-info.interface';
 import { getTokenFromAuthorization } from '../utils/utils';
 
@@ -21,7 +21,7 @@ export class AuthGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly prisma: AuthPrismaService,
-    private readonly tokenService: TokensService,
+    private readonly tokenService: TokenGeneratorService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {

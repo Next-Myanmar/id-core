@@ -64,7 +64,6 @@ export class AuthGuard implements CanActivate {
 
       authUser = await this.authUsers.authenticate({
         authorization,
-        ua: req.headers['user-agent'],
       });
 
       req.headers.auth = authUser;

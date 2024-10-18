@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { TokensService } from '../services/tokens.service';
+import { TokenGeneratorService } from '../services/token-generator.service';
 import { GetDeviceResolver } from './resolvers/get-device.resolver';
 import { GetDevicesResolver } from './resolvers/get-devices.resolver';
 import { MakeLogoutResolver } from './resolvers/make-logout.resolver';
@@ -11,7 +11,7 @@ import { MakeLogoutService } from './services/make-logout.service';
   imports: [],
   controllers: [],
   providers: [
-    TokensService,
+    TokenGeneratorService,
     GetDevicesService,
     GetDevicesResolver,
     GetDeviceService,

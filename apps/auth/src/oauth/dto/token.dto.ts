@@ -1,4 +1,4 @@
-import { i18nValidationMessage, IsURI } from '@app/common';
+import { i18nValidationMessage } from '@app/common';
 import { IsEnum, IsNotEmpty, Matches, ValidateIf } from 'class-validator';
 import { Grant } from '../../enums/grant.enum';
 
@@ -50,21 +50,6 @@ export class TokenDto {
     }),
   })
   code_verifier: string;
-
-  @ValidateIf((o) => o.grant_type === Grant.AuthorizationCode)
-  @IsURI({
-    message: i18nValidationMessage({
-      property: 'property.redirect_uri',
-      message: 'validation.INVALID',
-    }),
-  })
-  @IsNotEmpty({
-    message: i18nValidationMessage({
-      property: 'property.redirect_uri',
-      message: 'validation.NOT_EMPTY',
-    }),
-  })
-  redirect_uri: string;
 
   @ValidateIf((o) => o.grant_type === Grant.RefreshToken)
   @IsNotEmpty({

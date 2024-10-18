@@ -5,17 +5,17 @@ import { promisify } from 'util';
 import { AuthType } from '../enums/auth-type.enum';
 import { Grant } from '../enums/grant.enum';
 import { CodeChallengeMethod } from '../oauth/enums/code-challenge-method.enum';
-import { AuthOauthInfo } from '../oauth/types/auth-oauth-info.interface';
 import { AuthorizationCodeInfo } from '../oauth/types/authorization-code-info.interface';
 import { TOKEN_REDIS_PROVIDER } from '../redis/token-redis.module';
+import { AuthOauthInfo } from '../types/auth-oauth-info.interface';
 import { ClientOauth } from '../types/client-oauth.interface';
 import { KeysInfo } from '../types/keys-info';
 import { TokenInfo } from '../types/token-info.interface';
-import { AuthUsersInfo } from '../users/types/users-auth-info.interface';
+import { AuthUsersInfo } from '../types/users-auth-info.interface';
 
 @Injectable()
-export class TokensService {
-  private readonly logger = new Logger(TokensService.name);
+export class TokenGeneratorService {
+  private readonly logger = new Logger(TokenGeneratorService.name);
 
   constructor(
     @Inject(TOKEN_REDIS_PROVIDER)

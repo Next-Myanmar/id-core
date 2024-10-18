@@ -5,9 +5,5 @@ export interface ClientOauth {
 
   clientId: string;
 
-  clientName: string;
-
   grants: Grant[];
-
-  redirectUri: string;
 }

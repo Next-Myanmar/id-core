@@ -3,7 +3,7 @@ syntax = "proto3";
 package users.oauth;
 
 service UsersOauthService {
-    rpc getData(DataRequest) returns (DataResponse);
+    rpc getProfile(ProfileRequest) returns (Profile);
 }
 
 enum Scope {
@@ -11,12 +11,12 @@ enum Scope {
     ReadName = 1;
 }
 
-message DataRequest {
+message ProfileRequest {
     string userId = 1;
     repeated Scope scopes = 2;
 }
 
-message DataResponse {
+message Profile {
     optional string email = 1;
     optional string firstName = 2;
     optional string lastName = 3;

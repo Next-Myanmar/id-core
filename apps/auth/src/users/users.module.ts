@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
-import { TokensService } from '../services/tokens.service';
+import { TokenGeneratorService } from '../services/token-generator.service';
 import { AuthenticateController } from './controllers/authenticate.controller';
 import { GenerateTokenPairController } from './controllers/generate-token-pair.controller';
 import { LogoutController } from './controllers/logout.controller';
@@ -33,7 +33,7 @@ import { RefreshTokenService } from './services/refresh-token.service';
     MakeAllLogoutController,
   ],
   providers: [
-    TokensService,
+    TokenGeneratorService,
     GenerateTokenPairService,
     AuthenticateService,
     RefreshTokenService,

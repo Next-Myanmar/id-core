@@ -1,1 +1,1 @@
-export const METHOD_GET_DATA = 'getData';
+export const METHOD_GET_PROFILE = 'getProfile';

@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package auth.oauth;
+
+service AuthOauthService {
+    rpc authenticate (AuthenticateRequest) returns (AuthOauthUser);
+}
+
+message AuthenticateRequest {
+    string clientId=1;
+    string clientSecret=2;
+    string authorization=3;
+}
+
+message Profile {
+    optional string email = 1;
+    optional string firstName = 2;
+    optional string lastName = 3;
+}
+
+message AuthOauthUser {
+    string userId = 1;
+    Profile profile = 2;
+}

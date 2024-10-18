@@ -2,8 +2,8 @@ import { OauthUser } from '@app/prisma/auth';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Scope } from 'apps/auth/src/oauth/enums/scope.enum';
-import { AuthOauthInfo } from 'apps/auth/src/oauth/types/auth-oauth-info.interface';
-import { TokensService } from 'apps/auth/src/services/tokens.service';
+import { TokenGeneratorService } from 'apps/auth/src/services/token-generator.service';
+import { AuthOauthInfo } from 'apps/auth/src/types/auth-oauth-info.interface';
 import { ClientOauth } from 'apps/auth/src/types/client-oauth.interface';
 import { CodeChallengeMethod } from '../../enums/code-challenge-method.enum';
 import { AuthorizeResponse } from '../../types/authorize.response.interface';
@@ -14,7 +14,7 @@ export class CodeService {
 
   constructor(
     private readonly config: ConfigService,
-    private readonly tokenService: TokensService,
+    private readonly tokenService: TokenGeneratorService,
   ) {}
 
   async handleCode(

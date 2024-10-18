@@ -4,7 +4,7 @@ import {
   i18nValidationMessage,
   UserAgentDetails,
 } from '@app/common';
-import { AuthPrismaService } from '@app/prisma/auth';
+import { AuthPrismaService, ClientOauth } from '@app/prisma/auth';
 import { Injectable, Logger } from '@nestjs/common';
 import { Grant, GrantHelper } from 'apps/auth/src/enums/grant.enum';
 import { Request } from 'express';
@@ -30,7 +30,7 @@ export class TokenService {
   ): Promise<TokenPairResponse> {
     this.logger.log(`Grant Type: ${generateTokenPairDto.grant_type}`);
 
-    await this.checkClient(
+    const client = await this.getClient(
       generateTokenPairDto.client_id,
       generateTokenPairDto.client_secret,
       generateTokenPairDto.grant_type,
@@ -38,6 +38,7 @@ export class TokenService {
 
     if (generateTokenPairDto.grant_type === Grant.AuthorizationCode) {
       return await this.authorizationCode.handleAuthorizationCode(
+        client,
         generateTokenPairDto,
         userAgentDetails,
       );
@@ -46,6 +47,7 @@ export class TokenService {
     if (generateTokenPairDto.grant_type === Grant.RefreshToken) {
       return await this.refreshToken.handleRefreshToken(
         req,
+        client,
         generateTokenPairDto,
         userAgentDetails,
       );
@@ -54,11 +56,11 @@ export class TokenService {
     return null;
   }
 
-  private async checkClient(
+  private async getClient(
     clientId: string,
     clientSecret: string,
     grantType: Grant,
-  ): Promise<void> {
+  ): Promise<ClientOauth> {
     const client = await this.prisma.clientOauth.findUnique({
       where: {
         clientId,
@@ -76,6 +78,16 @@ export class TokenService {
       },
     });
 
+    if (!client) {
+      throw I18nValidationException.create({
+        property: 'client_id',
+        message: i18nValidationMessage({
+          property: 'property.client_id',
+          message: 'validation.INVALID',
+        }),
+      });
+    }
+
     const validSecrets = await Promise.all(
       client.clientSecrets.map(
         async (data) => await compareHash(clientSecret, data.secret),
@@ -85,14 +97,16 @@ export class TokenService {
       (validSecret) => validSecret === true,
     );
 
-    if (!client || !isValidSecret) {
+    if (!isValidSecret) {
       throw I18nValidationException.create({
-        property: 'client_id',
+        property: 'client_secret',
         message: i18nValidationMessage({
-          property: 'property.client_id',
+          property: 'property.client_secret',
           message: 'validation.INVALID',
         }),
       });
     }
+
+    return client;
   }
 }

@@ -1,5 +1,5 @@
-import { DataResponse } from '@app/grpc/users-oauth';
-import { Scope } from '../enums/scope.enum';
+import { Profile } from '@app/grpc/users-oauth';
+import { Scope } from '../oauth/enums/scope.enum';
 
 export interface AuthOauthInfo {
   userId: string;
@@ -8,7 +8,7 @@ export interface AuthOauthInfo {
   deviceId: string;
   userAgentId: string;
 
-  profile: DataResponse;
+  profile: Profile;
 
   scopes: Scope[];
 }

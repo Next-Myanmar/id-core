@@ -5,10 +5,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthType } from '../../enums/auth-type.enum';
 import { Grant } from '../../enums/grant.enum';
-import { TokensService } from '../../services/tokens.service';
+import { TokenGeneratorService } from '../../services/token-generator.service';
 import { ClientOauth } from '../../types/client-oauth.interface';
+import { AuthUsersInfo } from '../../types/users-auth-info.interface';
 import { GenerateTokenPairDto } from '../dto/generate-token-pair.dto';
-import { AuthUsersInfo } from '../types/users-auth-info.interface';
 
 @Injectable()
 export class GenerateTokenPairService {
@@ -17,7 +17,7 @@ export class GenerateTokenPairService {
   constructor(
     private readonly config: ConfigService,
     private readonly prisma: AuthPrismaService,
-    private readonly tokenService: TokensService,
+    private readonly tokenService: TokenGeneratorService,
   ) {}
 
   async generateTokenPair(
@@ -27,9 +27,7 @@ export class GenerateTokenPairService {
       const client: ClientOauth = {
         id: this.config.getOrThrow('USERS_APP_CLIENT_OAUTH_ID'),
         clientId: '',
-        clientName: 'Users App',
         grants: [Grant.RefreshToken],
-        redirectUri: '',
       };
 
       const userAgentDetails = getUserAgentDetails(generateTokenPairDto.ua);

@@ -1,4 +1,5 @@
 import { I18nExceptionFilter, I18nValidationPipe } from '@app/common';
+import { AUTH_OAUTH_PACKAGE_NAME } from '@app/grpc/auth-oauth';
 import { AUTH_USERS_PACKAGE_NAME } from '@app/grpc/auth-users';
 import { ReflectionService } from '@grpc/reflection';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
@@ -36,6 +37,27 @@ async function bootstrap() {
         package: AUTH_USERS_PACKAGE_NAME,
         protoPath: join(__dirname, '../../../protos/auth-users.proto'),
         url: authUsersGrpcUrl,
+        ...(isDevelopment
+          ? {
+              onLoadPackageDefinition: (pkg: any, server: any) => {
+                new ReflectionService(pkg).addToServer(server);
+              },
+            }
+          : {}),
+      },
+    },
+    { inheritAppConfig: true },
+  );
+
+  const authOauthGrpcUrl = `${configService.getOrThrow('GRPC_HOST_AUTH_OAUTH')}:${configService.getOrThrow('GRPC_PORT_AUTH_OAUTH')}`;
+
+  app.connectMicroservice(
+    {
+      transport: Transport.GRPC,
+      options: {
+        package: AUTH_OAUTH_PACKAGE_NAME,
+        protoPath: join(__dirname, '../../../protos/auth-oauth.proto'),
+        url: authOauthGrpcUrl,
         ...(isDevelopment
           ? {
               onLoadPackageDefinition: (pkg: any, server: any) => {

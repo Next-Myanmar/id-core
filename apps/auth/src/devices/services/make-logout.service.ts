@@ -1,11 +1,11 @@
 import { I18nValidationException, i18nValidationMessage } from '@app/common';
 import { AuthPrismaService, Device } from '@app/prisma/auth';
 import { Injectable, Logger } from '@nestjs/common';
-import { AuthOauthInfo } from '../../oauth/types/auth-oauth-info.interface';
-import { TokensService } from '../../services/tokens.service';
+import { TokenGeneratorService } from '../../services/token-generator.service';
+import { AuthOauthInfo } from '../../types/auth-oauth-info.interface';
 import { ClientOauth } from '../../types/client-oauth.interface';
 import { TokenInfo } from '../../types/token-info.interface';
-import { AuthUsersInfo } from '../../users/types/users-auth-info.interface';
+import { AuthUsersInfo } from '../../types/users-auth-info.interface';
 import { MakeLogoutDto } from '../dto/make-logout.dto';
 
 @Injectable()
@@ -14,7 +14,7 @@ export class MakeLogoutService {
 
   constructor(
     private readonly prisma: AuthPrismaService,
-    private readonly token: TokensService,
+    private readonly token: TokenGeneratorService,
   ) {}
 
   async makeLogout(

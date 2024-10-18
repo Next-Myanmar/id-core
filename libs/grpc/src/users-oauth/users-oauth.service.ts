@@ -3,8 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { ClientGrpc } from '@nestjs/microservices';
 import { lastValueFrom } from 'rxjs';
 import {
-  DataRequest,
-  DataResponse,
+  Profile,
+  ProfileRequest,
   Scope,
   USERS_OAUTH_SERVICE_NAME,
   UsersOauthServiceClient,
@@ -29,12 +29,12 @@ export class UsersOauthService implements OnModuleInit {
       );
   }
 
-  async getData(request: DataRequest): Promise<DataResponse> {
+  async getProfile(request: ProfileRequest): Promise<Profile> {
     const stubMode = this.config.get<boolean>('STUB_MODE', false);
     this.logger.debug(`Stub Mode: ${stubMode}`);
 
     if (stubMode) {
-      const response: DataResponse = {};
+      const response: Profile = {};
 
       if (request.scopes.includes(Scope.ReadEmail)) {
         response['email'] = 'test@test.com';
@@ -48,7 +48,7 @@ export class UsersOauthService implements OnModuleInit {
       return response;
     }
 
-    const result = this.usersOauthServiceClient.getData(request);
+    const result = this.usersOauthServiceClient.getProfile(request);
 
     return await lastValueFrom(result);
   }

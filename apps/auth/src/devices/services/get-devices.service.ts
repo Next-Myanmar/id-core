@@ -1,6 +1,6 @@
 import { AuthPrismaService, Device, LoginHistory } from '@app/prisma/auth';
 import { Injectable, Logger } from '@nestjs/common';
-import { TokensService } from '../../services/tokens.service';
+import { TokenGeneratorService } from '../../services/token-generator.service';
 import { TokenInfo } from '../../types/token-info.interface';
 import { DeviceEntity } from '../entities/device.entity';
 import { convertToDeviceEntity } from '../utils/entity-utils';
@@ -11,7 +11,7 @@ export class GetDevicesService {
 
   constructor(
     private readonly prisma: AuthPrismaService,
-    private readonly token: TokensService,
+    private readonly token: TokenGeneratorService,
   ) {}
 
   async getDevices(tokenInfo: TokenInfo): Promise<DeviceEntity[]> {

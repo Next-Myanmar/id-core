@@ -2,10 +2,10 @@ import { AuthUser } from '@app/grpc/auth-users';
 import { AuthPrismaService } from '@app/prisma/auth';
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { AuthType } from '../../enums/auth-type.enum';
-import { TokensService } from '../../services/tokens.service';
+import { TokenGeneratorService } from '../../services/token-generator.service';
+import { AuthUsersInfo } from '../../types/users-auth-info.interface';
 import { getTokenFromAuthorization } from '../../utils/utils';
 import { AuthenticateDto } from '../dto/authenticate.dto';
-import { AuthUsersInfo } from '../types/users-auth-info.interface';
 
 @Injectable()
 export class AuthenticateService {
@@ -13,7 +13,7 @@ export class AuthenticateService {
 
   constructor(
     private readonly prisma: AuthPrismaService,
-    private readonly tokenService: TokensService,
+    private readonly tokenService: TokenGeneratorService,
   ) {}
 
   async authenticate(authenticateDto: AuthenticateDto): Promise<AuthUser> {

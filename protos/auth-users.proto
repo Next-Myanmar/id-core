@@ -35,7 +35,6 @@ message TokenPairResponse {
 
 message AuthenticateRequest {
     string authorization = 1;
-    string ua = 2;
 }
 
 message AuthUser {

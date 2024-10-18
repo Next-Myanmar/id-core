@@ -1,15 +1,20 @@
 import { UserAgentDetails } from '@app/common';
 import { UsersOauthService } from '@app/grpc/users-oauth';
-import { AuthPrismaService } from '@app/prisma/auth';
+import {
+  AuthPrismaService,
+  ClientOauth as ClientOauthPrisma,
+} from '@app/prisma/auth';
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { GrantHelper } from 'apps/auth/src/enums/grant.enum';
+import { AuthOauthInfo } from 'apps/auth/src/types/auth-oauth-info.interface';
+import { ClientOauth } from 'apps/auth/src/types/client-oauth.interface';
 import { Request } from 'express';
 import { AuthType } from '../../../enums/auth-type.enum';
-import { TokensService } from '../../../services/tokens.service';
+import { TokenGeneratorService } from '../../../services/token-generator.service';
 import { TokenInfo } from '../../../types/token-info.interface';
 import { getTokenFromAuthorization } from '../../../utils/utils';
 import { TokenDto } from '../../dto/token.dto';
 import { ScopeHelper } from '../../enums/scope.enum';
-import { AuthOauthInfo } from '../../types/auth-oauth-info.interface';
 import { TokenPairResponse } from '../../types/token-pair-response.interface';
 
 @Injectable()
@@ -18,12 +23,13 @@ export class RefreshTokenService {
 
   constructor(
     private readonly prisma: AuthPrismaService,
-    private readonly tokenService: TokensService,
+    private readonly tokenService: TokenGeneratorService,
     private readonly usersOauthService: UsersOauthService,
   ) {}
 
   async handleRefreshToken(
     req: Request,
+    client: ClientOauthPrisma,
     generateTokenPairDto: TokenDto,
     userAgentDetails: UserAgentDetails,
   ): Promise<TokenPairResponse> {
@@ -40,7 +46,7 @@ export class RefreshTokenService {
 
     await this.validateAccessToken(accessToken, tokenInfo);
 
-    const profile = await this.usersOauthService.getData({
+    const profile = await this.usersOauthService.getProfile({
       userId: authInfo.userId,
       scopes: authInfo.scopes.map((scope) => ScopeHelper.convertToGrpc(scope)),
     });
@@ -56,6 +62,13 @@ export class RefreshTokenService {
           });
         }
 
+        const newClientInfo: ClientOauth = {
+          ...tokenInfo.client,
+          grants: client.grants.map((grant) =>
+            GrantHelper.convertToGrant(grant),
+          ),
+        };
+
         const newAuthInfo: AuthOauthInfo = {
           ...authInfo,
           profile,
@@ -69,7 +82,7 @@ export class RefreshTokenService {
 
         const result = await this.tokenService.saveToken(
           AuthType.Oauth,
-          tokenInfo.client,
+          newClientInfo,
           newAuthInfo,
           tokenInfo.accessTokenLifetime,
           tokenInfo.refreshTokenLifetime,

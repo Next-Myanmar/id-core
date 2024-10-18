@@ -5,10 +5,10 @@
 // source: protos/users-oauth.proto
 
 /* eslint-disable */
-import { GrpcMethod, GrpcStreamMethod } from '@nestjs/microservices';
-import { Observable } from 'rxjs';
+import { GrpcMethod, GrpcStreamMethod } from "@nestjs/microservices";
+import { Observable } from "rxjs";
 
-export const protobufPackage = 'users.oauth';
+export const protobufPackage = "users.oauth";
 
 export enum Scope {
   ReadEmail = 0,
@@ -16,56 +16,40 @@ export enum Scope {
   UNRECOGNIZED = -1,
 }
 
-export interface DataRequest {
+export interface ProfileRequest {
   userId: string;
   scopes: Scope[];
 }
 
-export interface DataResponse {
+export interface Profile {
   email?: string | undefined;
   firstName?: string | undefined;
   lastName?: string | undefined;
 }
 
-export const USERS_OAUTH_PACKAGE_NAME = 'users.oauth';
+export const USERS_OAUTH_PACKAGE_NAME = "users.oauth";
 
 export interface UsersOauthServiceClient {
-  getData(request: DataRequest): Observable<DataResponse>;
+  getProfile(request: ProfileRequest): Observable<Profile>;
 }
 
 export interface UsersOauthServiceController {
-  getData(
-    request: DataRequest,
-  ): Promise<DataResponse> | Observable<DataResponse> | DataResponse;
+  getProfile(request: ProfileRequest): Promise<Profile> | Observable<Profile> | Profile;
 }
 
 export function UsersOauthServiceControllerMethods() {
   return function (constructor: Function) {
-    const grpcMethods: string[] = ['getData'];
+    const grpcMethods: string[] = ["getProfile"];
     for (const method of grpcMethods) {
-      const descriptor: any = Reflect.getOwnPropertyDescriptor(
-        constructor.prototype,
-        method,
-      );
-      GrpcMethod('UsersOauthService', method)(
-        constructor.prototype[method],
-        method,
-        descriptor,
-      );
+      const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
+      GrpcMethod("UsersOauthService", method)(constructor.prototype[method], method, descriptor);
     }
     const grpcStreamMethods: string[] = [];
     for (const method of grpcStreamMethods) {
-      const descriptor: any = Reflect.getOwnPropertyDescriptor(
-        constructor.prototype,
-        method,
-      );
-      GrpcStreamMethod('UsersOauthService', method)(
-        constructor.prototype[method],
-        method,
-        descriptor,
-      );
+      const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
+      GrpcStreamMethod("UsersOauthService", method)(constructor.prototype[method], method, descriptor);
     }
   };
 }
 
-export const USERS_OAUTH_SERVICE_NAME = 'UsersOauthService';
+export const USERS_OAUTH_SERVICE_NAME = "UsersOauthService";

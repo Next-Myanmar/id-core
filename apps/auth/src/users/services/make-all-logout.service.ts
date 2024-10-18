@@ -1,9 +1,9 @@
+import { AuthPrismaService } from '@app/prisma/auth';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthType } from '../../enums/auth-type.enum';
-import { TokensService } from '../../services/tokens.service';
+import { TokenGeneratorService } from '../../services/token-generator.service';
 import { MakeAllLogoutDto } from '../dto/male-all-logout.dto';
-import { AuthPrismaService } from '@app/prisma/auth';
 
 @Injectable()
 export class MakeAllLogoutService {
@@ -12,7 +12,7 @@ export class MakeAllLogoutService {
   constructor(
     private readonly config: ConfigService,
     private readonly prisma: AuthPrismaService,
-    private readonly token: TokensService,
+    private readonly token: TokenGeneratorService,
   ) {}
 
   async makeAllLogout(makeAllLogoutDto: MakeAllLogoutDto) {
