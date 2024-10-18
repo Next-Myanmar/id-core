@@ -31,6 +31,7 @@ export class UsersOauthService implements OnModuleInit {
 
   async getData(request: DataRequest): Promise<DataResponse> {
     const stubMode = this.config.get<boolean>('STUB_MODE', false);
+    this.logger.debug(`Stub Mode: ${stubMode}`);
 
     if (stubMode) {
       const response: DataResponse = {};

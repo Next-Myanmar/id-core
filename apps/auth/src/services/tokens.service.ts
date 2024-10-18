@@ -330,8 +330,6 @@ export class TokensService {
 
     if (value) {
       data = JSON.parse(value, dateReviver);
-
-      delete data.redirectUri;
     }
 
     this.logger.debug('getAuthorizationCode End');

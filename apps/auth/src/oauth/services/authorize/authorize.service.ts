@@ -36,6 +36,7 @@ export class AuthorizeService {
   async authorize(
     req: Request,
     authorizeDto: AuthorizeDto,
+    isConsent: boolean,
   ): Promise<AuthorizeResponse> {
     this.logger.log(`Response Type: ${authorizeDto.response_type}`);
 
@@ -51,13 +52,23 @@ export class AuthorizeService {
       throw new UnauthorizedException();
     }
 
-    const oauthUser = await this.getOauthUser(
-      client,
-      usersTokenInfo,
-      authorizeDto.scopes,
-    );
-    if (!oauthUser) {
-      throw new ForbiddenException();
+    let oauthUser: OauthUser;
+
+    if (isConsent) {
+      oauthUser = await this.upsertOauthUser(
+        client,
+        usersTokenInfo,
+        authorizeDto.scopes,
+      );
+    } else {
+      oauthUser = await this.getOauthUser(
+        client,
+        usersTokenInfo,
+        authorizeDto.scopes,
+      );
+      if (!oauthUser) {
+        throw new ForbiddenException();
+      }
     }
 
     if (authorizeDto.response_type === ResponseType.code) {
@@ -99,8 +110,11 @@ export class AuthorizeService {
     }
 
     return {
-      ...client,
+      id: client.id,
+      clientId: client.clientId,
+      clientName: client.clientName,
       grants: client.grants.map((grant) => GrantHelper.convertToGrant(grant)),
+      redirectUri: client.redirectUri,
     };
   }
 
@@ -128,26 +142,46 @@ export class AuthorizeService {
     return await this.tokenService.getAccessToken(AuthType.Users, accessToken);
   }
 
+  private async upsertOauthUser(
+    client: ClientOauth,
+    usersTokenInfo: TokenInfo,
+    scopes: Scope[],
+  ): Promise<OauthUser> {
+    const oauthUser = await this.prisma.oauthUser.upsert({
+      where: {
+        clientOauthId_userId: {
+          clientOauthId: client.id,
+          userId: usersTokenInfo.authInfo.userId,
+        },
+      },
+      create: {
+        clientOauthId: client.id,
+        userId: usersTokenInfo.authInfo.userId,
+        scopes: scopes.map((scope) => ScopeHelper.convertToPrisma(scope)),
+      },
+      update: {
+        scopes: scopes.map((scope) => ScopeHelper.convertToPrisma(scope)),
+      },
+    });
+
+    return oauthUser;
+  }
+
   private async getOauthUser(
     client: ClientOauth,
     usersTokenInfo: TokenInfo,
-    scopes?: Scope[],
+    scopes: Scope[],
   ): Promise<OauthUser> {
-    const whereClause: any = {
-      clientOauthId_userId: {
-        clientOauthId: client.id,
-        userId: usersTokenInfo.authInfo.userId,
-      },
-    };
-
-    if (scopes) {
-      whereClause.scopes = {
-        hasEvery: scopes.map((scope) => ScopeHelper.convertToPrisma(scope)),
-      };
-    }
-
     const oauthUser = await this.prisma.oauthUser.findUnique({
-      where: whereClause,
+      where: {
+        clientOauthId_userId: {
+          clientOauthId: client.id,
+          userId: usersTokenInfo.authInfo.userId,
+        },
+        scopes: {
+          hasEvery: scopes.map((scope) => ScopeHelper.convertToPrisma(scope)),
+        },
+      },
     });
 
     return oauthUser;

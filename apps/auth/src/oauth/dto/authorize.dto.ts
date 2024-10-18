@@ -1,6 +1,12 @@
 import { i18nValidationMessage, IsURI } from '@app/common';
 import { Transform } from 'class-transformer';
-import { IsEnum, IsNotEmpty, IsOptional, ValidateIf } from 'class-validator';
+import {
+  ArrayNotEmpty,
+  IsArray,
+  IsEnum,
+  IsNotEmpty,
+  ValidateIf,
+} from 'class-validator';
 import { CodeChallengeMethod } from '../enums/code-challenge-method.enum';
 import { ResponseType } from '../enums/response-type.enum';
 import { Scope } from '../enums/scope.enum';
@@ -48,10 +54,22 @@ export class AuthorizeDto {
   })
   code_challenge_method: CodeChallengeMethod;
 
-  @IsOptional()
+  @ValidateIf((o) => o.response_type === ResponseType.code)
   @Transform(({ value }) =>
     value ? value.split(' ').map((scope: Scope) => scope as Scope) : [],
   )
+  @IsArray({
+    message: i18nValidationMessage({
+      property: 'property.scopes',
+      message: 'validation.INVALID',
+    }),
+  })
+  @ArrayNotEmpty({
+    message: i18nValidationMessage({
+      property: 'property.scopes',
+      message: 'validation.INVALID',
+    }),
+  })
   @IsEnum(Scope, {
     each: true,
     message: i18nValidationMessage({
@@ -59,5 +77,5 @@ export class AuthorizeDto {
       message: 'validation.INVALID',
     }),
   })
-  scopes?: Scope[];
+  scopes: Scope[];
 }

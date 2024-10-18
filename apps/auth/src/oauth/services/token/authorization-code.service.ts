@@ -55,9 +55,15 @@ export class AuthorizationCodeService {
 
     const result = await this.tokenService.transaction(async () => {
       return await this.prisma.transaction(async (prisma) => {
+        await this.tokenService.revokeKeysInfo(
+          AuthType.Oauth,
+          authorizationCodeInfo.client,
+          authorizationCodeInfo.authInfo,
+        );
+
         const device = await prisma.device.create({
           data: {
-            clientOauthId: generateTokenPairDto.client_id,
+            clientOauthId: authorizationCodeInfo.client.id,
             userId: authorizationCodeInfo.authInfo.oauthUserId,
             ua: userAgentDetails.ua,
           },
@@ -113,8 +119,9 @@ export class AuthorizationCodeService {
   ): Promise<AuthorizationCodeInfo> {
     const codeInfo = await this.tokenService.getAuthorizationCode(code);
 
-    if (!codeInfo || codeInfo.client.id !== clientId) {
+    if (!codeInfo || codeInfo.client.clientId !== clientId) {
       throw I18nValidationException.create({
+        property: 'code',
         message: i18nValidationMessage({
           property: 'property.code',
           message: 'validation.INVALID',
@@ -124,6 +131,7 @@ export class AuthorizationCodeService {
 
     if (codeInfo.redirectUri !== redirectUri) {
       throw I18nValidationException.create({
+        property: 'redirect_uri',
         message: i18nValidationMessage({
           property: 'property.redirect_uri',
           message: 'validation.INVALID',
@@ -147,6 +155,7 @@ export class AuthorizationCodeService {
 
     if (!isValid) {
       throw I18nValidationException.create({
+        property: 'code_verifier',
         message: i18nValidationMessage({
           property: 'property.code_verifier',
           message: 'validation.INVALID',

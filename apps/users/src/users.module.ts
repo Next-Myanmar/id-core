@@ -13,10 +13,12 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import * as Joi from 'joi';
+import { GrpcMetadataResolver } from 'nestjs-i18n';
 import { AuthModule } from './auth/auth.module';
 import { AuthGuard } from './guards/auth.guard';
 import { ProfileModule } from './profile/profile.module';
 import { VerificationRedisModule } from './redis/verification-redis.module';
+import { OauthModule } from './oauth/oauth.module';
 
 @Module({
   imports: [
@@ -30,7 +32,7 @@ import { VerificationRedisModule } from './redis/verification-redis.module';
     }),
     LoggerModule,
     I18nModule.forRoot({
-      resolvers: [new HeaderResolver(['x-lang'])],
+      resolvers: [new HeaderResolver(['x-lang']), GrpcMetadataResolver],
     }),
     ThrottlerModule.forRoot({
       name: 'users',
@@ -40,12 +42,15 @@ import { VerificationRedisModule } from './redis/verification-redis.module';
     VerificationRedisModule,
     UsersPrismaModule,
     HealthModule,
-    AuthUsersServiceModule.forRootAsync({ envFilePath: './apps/users/.env' }),
+    AuthUsersServiceModule.forRootAsync({
+      envFilePath: './apps/users/.env',
+    }),
     NotificationsUsersModule.forRootAsync({
       envFilePath: './apps/users/.env',
     }),
     AuthModule,
     ProfileModule,
+    OauthModule,
   ],
   controllers: [],
   providers: [

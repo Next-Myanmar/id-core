@@ -18,7 +18,7 @@ export class GraphQLModule {
         BaseGraphQLModule.forRootAsync<ApolloFederationDriverConfig>({
           driver: ApolloFederationDriver,
           useFactory: async () => {
-            const isDevelopment = process.env.NODE_ENV !== 'production';
+            const isDevelopment = process.env.NODE_ENV !== 'prod';
 
             return {
               autoSchemaFile: {

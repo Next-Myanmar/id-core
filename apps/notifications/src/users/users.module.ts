@@ -28,7 +28,7 @@ import { TestUsersModule } from './test-users.module';
     ActivateUserEmailModule,
     WelcomeUserEmailModule,
     VerifyLoginEmailModule,
-    ...(process.env.NODE_ENV === 'development' ? [TestUsersModule] : []),
+    ...(process.env.NODE_ENV !== 'prod' ? [TestUsersModule] : []),
   ],
   controllers: [
     SendActivateUserEmailController,

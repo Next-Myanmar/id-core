@@ -29,7 +29,7 @@ model ClientOauth {
   id String @id @default(auto()) @map("_id") @db.ObjectId
 
   clientId   String @unique
-  clientName String @unique
+  clientName String
 
   redirectUri String
   grants      Grant[]
@@ -48,7 +48,7 @@ model ClientSecret {
   clientOauth   ClientOauth? @relation(fields: [clientOauthId], references: [id])
   clientOauthId String?      @db.ObjectId
 
-  name   String @unique
+  name   String
   secret String @unique
 
   isDeleted Boolean @default(false)

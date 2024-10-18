@@ -108,7 +108,7 @@ export class RefreshTokenService {
       refreshToken,
     );
 
-    if (!tokenInfo || tokenInfo.client.id !== clientId) {
+    if (!tokenInfo || tokenInfo.client.clientId !== clientId) {
       throw new UnauthorizedException();
     }
 

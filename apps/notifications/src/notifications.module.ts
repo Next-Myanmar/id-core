@@ -12,7 +12,8 @@ import { UsersModule } from './users/users.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: './apps/notifications/.env',
+      envFilePath:
+        './apps/notifications/.env',
       isGlobal: true,
       validationSchema: Joi.object({
         HTTP_PORT_NOTIFICATIONS: Joi.number().required(),

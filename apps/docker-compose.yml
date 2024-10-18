@@ -9,10 +9,9 @@ services:
     env_file:
       - ./auth/.env
     environment:
-      - STUB_MODE=false
-      - USERS_TOKEN_REDIS_HOST=redis
+      - TOKEN_REDIS_HOST=redis
       - THROTTLER_REDIS_HOST=redis
-      - USERS_OAUTH_GRPC_URL=users:5001
+      - USERS_OAUTH_GRPC_URL=users:5002
     ports:
       - '3001:3001'
       - '5001:5001'
@@ -37,7 +36,6 @@ services:
     env_file:
       - ./users/.env
     environment:
-      - STUB_MODE=false
       - REDIS_HOST_VERIFICATION=redis
       - RMQ_HOST_USERS_NOTIFICATIONS=rabbitmq
       - AUTH_USERS_GRPC_URL=auth:5001

@@ -1,4 +1,5 @@
 import {
+  compareHash,
   I18nValidationException,
   i18nValidationMessage,
   UserAgentDetails,
@@ -7,7 +8,6 @@ import { AuthPrismaService } from '@app/prisma/auth';
 import { Injectable, Logger } from '@nestjs/common';
 import { Grant, GrantHelper } from 'apps/auth/src/enums/grant.enum';
 import { Request } from 'express';
-import { ClientOauth } from '../../../types/client-oauth.interface';
 import { TokenDto } from '../../dto/token.dto';
 import { TokenPairResponse } from '../../types/token-pair-response.interface';
 import { AuthorizationCodeService } from './authorization-code.service';
@@ -58,13 +58,12 @@ export class TokenService {
     clientId: string,
     clientSecret: string,
     grantType: Grant,
-  ): Promise<ClientOauth> {
+  ): Promise<void> {
     const client = await this.prisma.clientOauth.findUnique({
       where: {
         clientId,
         clientSecrets: {
           some: {
-            secret: clientSecret,
             isDeleted: false,
           },
         },
@@ -72,9 +71,21 @@ export class TokenService {
           has: GrantHelper.convertToGrantPrisma(grantType),
         },
       },
+      include: {
+        clientSecrets: true,
+      },
     });
 
-    if (!client) {
+    const validSecrets = await Promise.all(
+      client.clientSecrets.map(
+        async (data) => await compareHash(clientSecret, data.secret),
+      ),
+    );
+    const isValidSecret = validSecrets.some(
+      (validSecret) => validSecret === true,
+    );
+
+    if (!client || !isValidSecret) {
       throw I18nValidationException.create({
         property: 'client_id',
         message: i18nValidationMessage({
@@ -83,10 +94,5 @@ export class TokenService {
         }),
       });
     }
-
-    return {
-      ...client,
-      grants: client.grants.map((grant) => GrantHelper.convertToGrant(grant)),
-    };
   }
 }

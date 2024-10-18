@@ -26,6 +26,7 @@ export class GenerateTokenPairService {
     return await this.tokenService.transaction(async () => {
       const client: ClientOauth = {
         id: this.config.getOrThrow('USERS_APP_CLIENT_OAUTH_ID'),
+        clientId: '',
         clientName: 'Users App',
         grants: [Grant.RefreshToken],
         redirectUri: '',

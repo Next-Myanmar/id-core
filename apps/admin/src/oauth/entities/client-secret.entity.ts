@@ -1,17 +1,13 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
-class ClientOauthEntity {
+export class ClientSecretEntity {
   @Field(() => ID)
   id: string;
 
   @Field()
-  clientId: string;
+  name: string;
 
   @Field()
-  clientName: string;
-
-  redirectUri: string;
-
-  grants: 
+  secret: string;
 }

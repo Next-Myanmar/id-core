@@ -20,8 +20,8 @@ import { RefreshTokenService } from './services/refresh-token.service';
       isGlobal: true,
       validationSchema: Joi.object({
         USERS_APP_CLIENT_OAUTH_ID: Joi.string().required(),
-        GRPC_HOST_USERS: Joi.string().required(),
-        GRPC_PORT_USERS: Joi.number().required(),
+        GRPC_HOST_AUTH_USERS: Joi.string().required(),
+        GRPC_PORT_AUTH_USERS: Joi.number().required(),
       }),
     }),
   ],

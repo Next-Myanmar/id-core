@@ -6,7 +6,7 @@ import { LoggerModule as PinoLoggerModule } from 'nestjs-pino';
   imports: [
     PinoLoggerModule.forRootAsync({
       useFactory: (configService: ConfigService) => {
-        const isDevelopment = process.env.NODE_ENV === 'development';
+        const isDevelopment = process.env.NODE_ENV !== 'prod';
 
         return {
           pinoHttp: {

@@ -1,10 +1,12 @@
 import { Public } from '@app/common';
 import {
+  Body,
   Controller,
   Get,
   HttpCode,
   HttpStatus,
   Logger,
+  Post,
   Query,
   Req,
 } from '@nestjs/common';
@@ -30,9 +32,33 @@ export class AuthorizeController {
   ): Promise<AuthorizeResponse> {
     this.logger.log('Authorize Start');
 
-    const result = await this.authorizeService.authorize(req, authorizeDto);
+    const result = await this.authorizeService.authorize(
+      req,
+      authorizeDto,
+      false,
+    );
 
     this.logger.log('Authorize End');
+
+    return result;
+  }
+
+  @Post('authorize')
+  @HttpCode(HttpStatus.OK)
+  @Public()
+  async consent(
+    @Req() req: Request,
+    @Body() authorizeDto: AuthorizeDto,
+  ): Promise<AuthorizeResponse> {
+    this.logger.log('Concent Start');
+
+    const result = await this.authorizeService.authorize(
+      req,
+      authorizeDto,
+      true,
+    );
+
+    this.logger.log('Concent End');
 
     return result;
   }

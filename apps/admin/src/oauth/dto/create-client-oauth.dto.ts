@@ -1,10 +1,10 @@
 import { i18nValidationMessage, IsURI } from '@app/common';
-import { Grant } from '@app/prisma/auth';
 import { Field, InputType } from '@nestjs/graphql';
 import { IsEnum, IsNotEmpty } from 'class-validator';
+import { Grant } from '../enums/grant.enum';
 
 @InputType()
-export class CreateOauthClientDto {
+export class CreateClientOauthDto {
   @Field()
   @IsNotEmpty({
     message: i18nValidationMessage({
@@ -32,7 +32,7 @@ export class CreateOauthClientDto {
   })
   redirectUri: string;
 
-  @Field()
+  @Field(() => [Grant])
   @IsEnum(Grant, {
     each: true,
     message: i18nValidationMessage({

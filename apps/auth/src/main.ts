@@ -13,7 +13,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AuthModule, { bufferLogs: true });
   const configService = app.get(ConfigService);
 
-  const isDevelopment = process.env.NODE_ENV === 'development';
+  const isDevelopment = process.env.NODE_ENV !== 'prod';
 
   app.useLogger(app.get(Logger));
 
@@ -27,7 +27,7 @@ async function bootstrap() {
 
   app.useGlobalFilters(new I18nExceptionFilter());
 
-  const grpcUrlUsers = `${configService.getOrThrow('GRPC_HOST_USERS')}:${configService.getOrThrow('GRPC_PORT_USERS')}`;
+  const authUsersGrpcUrl = `${configService.getOrThrow('GRPC_HOST_AUTH_USERS')}:${configService.getOrThrow('GRPC_PORT_AUTH_USERS')}`;
 
   app.connectMicroservice(
     {
@@ -35,7 +35,7 @@ async function bootstrap() {
       options: {
         package: AUTH_USERS_PACKAGE_NAME,
         protoPath: join(__dirname, '../../../protos/auth-users.proto'),
-        url: grpcUrlUsers,
+        url: authUsersGrpcUrl,
         ...(isDevelopment
           ? {
               onLoadPackageDefinition: (pkg: any, server: any) => {

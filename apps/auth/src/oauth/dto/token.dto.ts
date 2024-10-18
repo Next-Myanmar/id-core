@@ -3,7 +3,7 @@ import { IsEnum, IsNotEmpty, Matches, ValidateIf } from 'class-validator';
 import { Grant } from '../../enums/grant.enum';
 
 export class TokenDto {
-  @IsEnum({
+  @IsEnum(Grant, {
     message: i18nValidationMessage({
       property: 'property.grant_type',
       message: 'validation.INVALID',
