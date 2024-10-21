@@ -40,7 +40,7 @@ async function bootstrap() {
         ...(isDevelopment
           ? {
               onLoadPackageDefinition: (pkg: any, server: any) => {
-                new ReflectionService(pkg).addToServer(server);
+                return new ReflectionService(pkg).addToServer(server);
               },
             }
           : {}),
@@ -61,7 +61,7 @@ async function bootstrap() {
         ...(isDevelopment
           ? {
               onLoadPackageDefinition: (pkg: any, server: any) => {
-                new ReflectionService(pkg).addToServer(server);
+                return new ReflectionService(pkg).addToServer(server);
               },
             }
           : {}),

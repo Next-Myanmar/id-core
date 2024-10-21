@@ -23,8 +23,6 @@ export class AuthenticateController {
     this.logger.log('Authenticate (Grpc) Start');
 
     const result = await this.authenticateService.authenticate(
-      authenticateDto.clientId,
-      authenticateDto.clientSecret,
       authenticateDto.authorization,
     );
 

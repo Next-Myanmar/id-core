@@ -23,6 +23,7 @@ COPY libs libs
 COPY i18n i18n
 COPY protos/auth-users.proto protos/auth-users.proto
 COPY protos/users-oauth.proto protos/users-oauth.proto
+COPY protos/auth-oauth.proto protos/auth-oauth.proto
 
 COPY apps/auth/prisma apps/auth/prisma
 COPY apps/auth/src apps/auth/src

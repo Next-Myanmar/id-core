@@ -7,9 +7,7 @@ service AuthOauthService {
 }
 
 message AuthenticateRequest {
-    string clientId=1;
-    string clientSecret=2;
-    string authorization=3;
+    string authorization=1;
 }
 
 message Profile {

@@ -30,24 +30,6 @@ export class UsersOauthService implements OnModuleInit {
   }
 
   async getProfile(request: ProfileRequest): Promise<Profile> {
-    const stubMode = this.config.get<boolean>('STUB_MODE', false);
-    this.logger.debug(`Stub Mode: ${stubMode}`);
-
-    if (stubMode) {
-      const response: Profile = {};
-
-      if (request.scopes.includes(Scope.ReadEmail)) {
-        response['email'] = 'test@test.com';
-      }
-
-      if (request.scopes.includes(Scope.ReadName)) {
-        response['firstName'] = 'Test';
-        response['lastName'] = 'Test';
-      }
-
-      return response;
-    }
-
     const result = this.usersOauthServiceClient.getProfile(request);
 
     return await lastValueFrom(result);

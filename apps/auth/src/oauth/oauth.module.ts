@@ -5,10 +5,12 @@ import * as Joi from 'joi';
 import { TokenGeneratorService } from '../services/token-generator.service';
 import { AuthenticateController } from './controllers/authenticate.controller';
 import { AuthorizeController } from './controllers/authorize.controller';
+import { LogoutController } from './controllers/logout.controller';
 import { TokenController } from './controllers/token.controller';
 import { AuthenticateService } from './services/authenticate.service';
 import { AuthorizeService } from './services/authorize/authorize.service';
 import { CodeService } from './services/authorize/code.service';
+import { LogoutService } from './services/logout.service';
 import { AuthorizationCodeService } from './services/token/authorization-code.service';
 import { RefreshTokenService } from './services/token/refresh-token.service';
 import { TokenService } from './services/token/token.service';
@@ -29,7 +31,12 @@ import { TokenService } from './services/token/token.service';
     }),
     UsersOauthServiceModule.forRootAsync({ envFilePath: './apps/auth/.env' }),
   ],
-  controllers: [AuthorizeController, TokenController, AuthenticateController],
+  controllers: [
+    AuthorizeController,
+    TokenController,
+    AuthenticateController,
+    LogoutController,
+  ],
   providers: [
     TokenGeneratorService,
     TokenService,
@@ -38,6 +45,7 @@ import { TokenService } from './services/token/token.service';
     AuthorizationCodeService,
     RefreshTokenService,
     AuthenticateService,
+    LogoutService,
   ],
 })
 export class OauthModule {}

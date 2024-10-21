@@ -15,6 +15,7 @@ services:
     ports:
       - '3001:3001'
       - '5001:5001'
+      - '5003:5003'
     volumes:
       - auth_data:/usr/src/app
     networks:

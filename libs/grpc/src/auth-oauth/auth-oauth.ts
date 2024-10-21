@@ -11,8 +11,6 @@ import { Observable } from "rxjs";
 export const protobufPackage = "auth.oauth";
 
 export interface AuthenticateRequest {
-  clientId: string;
-  clientSecret: string;
   authorization: string;
 }
 
