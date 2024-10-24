@@ -41,6 +41,16 @@ export class AuthorizationCodeService {
   ): Promise<TokenPairResponse> {
     this.logger.log('Handle Authorization Code Start');
 
+    if (client.redirectUri !== generateTokenPairDto.redirect_uri) {
+      throw I18nValidationException.create({
+        property: 'redirect_uri',
+        message: i18nValidationMessage({
+          property: 'property.redirect_uri',
+          message: 'validation.INVALID',
+        }),
+      });
+    }
+
     const authorizationCodeInfo =
       await this.getAuthorizationCodeInfo(generateTokenPairDto);
 

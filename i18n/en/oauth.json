@@ -1,0 +1,6 @@
+{
+  "scope": {
+    "read:email": "Read your email address.",
+    "read:name": "Read your first name and last name."
+  }
+}

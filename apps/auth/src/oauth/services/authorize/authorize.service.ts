@@ -1,26 +1,28 @@
 import { I18nValidationException, i18nValidationMessage } from '@app/common';
-import { OauthUser } from '@app/prisma/auth';
+import { TokenType } from '@app/grpc/auth-users';
+import { ClientOauth as ClientOauthPrisma, OauthUser } from '@app/prisma/auth';
 import { AuthPrismaService } from '@app/prisma/auth/auth-prisma.service';
-import {
-  ForbiddenException,
-  Injectable,
-  Logger,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { AuthType } from 'apps/auth/src/enums/auth-type.enum';
 import { GrantHelper } from 'apps/auth/src/enums/grant.enum';
 import { Scope, ScopeHelper } from 'apps/auth/src/oauth/enums/scope.enum';
 import { TokenGeneratorService } from 'apps/auth/src/services/token-generator.service';
 import { ClientOauth } from 'apps/auth/src/types/client-oauth.interface';
 import { TokenInfo } from 'apps/auth/src/types/token-info.interface';
+import { AuthUsersInfo } from 'apps/auth/src/types/users-auth-info.interface';
 import { getTokenFromAuthorization } from 'apps/auth/src/utils/utils';
 import { Request } from 'express';
+import { I18nContext } from 'nestjs-i18n';
 import { AuthorizeDto } from '../../dto/authorize.dto';
+import { AuthorizeStatus } from '../../enums/authorize-status.enum';
 import {
   ResponseType,
   ResponseTypeHelper,
 } from '../../enums/response-type.enum';
-import { AuthorizeResponse } from '../../types/authorize.response.interface';
+import {
+  AuthorizeResponse,
+  ScopeDetailResponse,
+} from '../../types/authorize.response.interface';
 import { CodeService } from './code.service';
 
 @Injectable()
@@ -40,7 +42,7 @@ export class AuthorizeService {
   ): Promise<AuthorizeResponse> {
     this.logger.log(`Response Type: ${authorizeDto.response_type}`);
 
-    const client = await this.getClient(
+    const { client, clientPrisma } = await this.getClient(
       authorizeDto.response_type,
       authorizeDto.client_id,
       authorizeDto.redirect_uri,
@@ -51,22 +53,50 @@ export class AuthorizeService {
       throw new UnauthorizedException();
     }
 
+    const usersAuthInfo: AuthUsersInfo =
+      usersTokenInfo.authInfo as AuthUsersInfo;
+
+    if (usersAuthInfo.tokenType !== TokenType.Normal) {
+      throw new UnauthorizedException();
+    }
+
     let oauthUser: OauthUser;
 
     if (isConsent) {
       oauthUser = await this.upsertOauthUser(
         client,
         usersTokenInfo,
-        authorizeDto.scopes,
+        authorizeDto.scope,
       );
     } else {
       oauthUser = await this.getOauthUser(
         client,
         usersTokenInfo,
-        authorizeDto.scopes,
+        authorizeDto.scope,
       );
       if (!oauthUser) {
-        throw new ForbiddenException();
+        const i18nContext = I18nContext.current();
+
+        const scopes = await Promise.all(
+          authorizeDto.scope.map(async (scope) => {
+            const data: ScopeDetailResponse = {
+              scope,
+              description: await i18nContext.t('oauth.scope.' + scope, {
+                lang: i18nContext.lang,
+              }),
+            };
+
+            return data;
+          }),
+        );
+
+        return {
+          status: AuthorizeStatus.Consent,
+          data: {
+            clientName: clientPrisma.clientName,
+            scopes,
+          },
+        };
       }
     }
 
@@ -76,7 +106,7 @@ export class AuthorizeService {
         usersTokenInfo.authInfo.userId,
         oauthUser,
         authorizeDto.redirect_uri,
-        authorizeDto.scopes,
+        authorizeDto.scope,
         authorizeDto.code_challenge,
         authorizeDto.code_challenge_method,
       );
@@ -89,7 +119,7 @@ export class AuthorizeService {
     responseType: ResponseType,
     clientId: string,
     redirectUri: string,
-  ): Promise<ClientOauth> {
+  ): Promise<{ client: ClientOauth; clientPrisma: ClientOauthPrisma }> {
     const client = await this.prisma.clientOauth.findUnique({
       where: {
         clientId,
@@ -123,9 +153,12 @@ export class AuthorizeService {
     }
 
     return {
-      id: client.id,
-      clientId: client.clientId,
-      grants: client.grants.map((grant) => GrantHelper.convertToGrant(grant)),
+      client: {
+        id: client.id,
+        clientId: client.clientId,
+        grants: client.grants.map((grant) => GrantHelper.convertToGrant(grant)),
+      },
+      clientPrisma: client,
     };
   }
 

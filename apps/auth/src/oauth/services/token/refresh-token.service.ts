@@ -8,11 +8,9 @@ import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { GrantHelper } from 'apps/auth/src/enums/grant.enum';
 import { AuthOauthInfo } from 'apps/auth/src/types/auth-oauth-info.interface';
 import { ClientOauth } from 'apps/auth/src/types/client-oauth.interface';
-import { Request } from 'express';
 import { AuthType } from '../../../enums/auth-type.enum';
 import { TokenGeneratorService } from '../../../services/token-generator.service';
 import { TokenInfo } from '../../../types/token-info.interface';
-import { getTokenFromAuthorization } from '../../../utils/utils';
 import { TokenDto } from '../../dto/token.dto';
 import { ScopeHelper } from '../../enums/scope.enum';
 import { TokenPairResponse } from '../../types/token-pair-response.interface';
@@ -28,14 +26,11 @@ export class RefreshTokenService {
   ) {}
 
   async handleRefreshToken(
-    req: Request,
     client: ClientOauthPrisma,
     generateTokenPairDto: TokenDto,
     userAgentDetails: UserAgentDetails,
   ): Promise<TokenPairResponse> {
     this.logger.log('Handle Refresh Token Start');
-
-    const accessToken = await this.getAccessToken(req);
 
     const tokenInfo = await this.getRefreshTokenInfo(
       generateTokenPairDto.client_id,
@@ -43,8 +38,6 @@ export class RefreshTokenService {
     );
 
     const authInfo: AuthOauthInfo = tokenInfo.authInfo as AuthOauthInfo;
-
-    await this.validateAccessToken(accessToken, tokenInfo);
 
     const profile = await this.usersOauthService.getProfile({
       userId: authInfo.userId,
@@ -101,17 +94,6 @@ export class RefreshTokenService {
     return result;
   }
 
-  private async getAccessToken(req: Request): Promise<string> {
-    const authorization = req.headers?.authorization;
-    if (!authorization) {
-      throw new UnauthorizedException();
-    }
-    const accessToken = getTokenFromAuthorization(authorization);
-    this.logger.debug(`AccessToken: ${accessToken}`);
-
-    return accessToken;
-  }
-
   private async getRefreshTokenInfo(
     clientId: string,
     refreshToken: string,
@@ -126,28 +108,5 @@ export class RefreshTokenService {
     }
 
     return tokenInfo;
-  }
-
-  private async validateAccessToken(
-    accessToken: string,
-    tokenInfo: TokenInfo,
-  ): Promise<void> {
-    if (tokenInfo.accessToken !== accessToken) {
-      this.logger.warn(
-        `The access tokens are different. Stored Access Token: ${tokenInfo.accessToken}, Actual Access Token: ${accessToken}`,
-      );
-
-      await this.tokenService.transaction(async () => {
-        await this.tokenService.revokeKeysInfo(
-          AuthType.Oauth,
-          tokenInfo.client,
-          tokenInfo.authInfo,
-        );
-
-        await this.tokenService.revokeAccessToken(AuthType.Oauth, accessToken);
-      });
-
-      throw new UnauthorizedException();
-    }
   }
 }

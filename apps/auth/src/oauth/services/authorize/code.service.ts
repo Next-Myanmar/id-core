@@ -5,6 +5,7 @@ import { Scope } from 'apps/auth/src/oauth/enums/scope.enum';
 import { TokenGeneratorService } from 'apps/auth/src/services/token-generator.service';
 import { AuthOauthInfo } from 'apps/auth/src/types/auth-oauth-info.interface';
 import { ClientOauth } from 'apps/auth/src/types/client-oauth.interface';
+import { AuthorizeStatus } from '../../enums/authorize-status.enum';
 import { CodeChallengeMethod } from '../../enums/code-challenge-method.enum';
 import { AuthorizeResponse } from '../../types/authorize.response.interface';
 
@@ -57,7 +58,10 @@ export class CodeService {
     this.logger.log('Handle Code End');
 
     return {
-      code: authorizationCodeInfo.code,
+      status: AuthorizeStatus.Success,
+      data: {
+        code: authorizationCodeInfo.code,
+      },
     };
   }
 }

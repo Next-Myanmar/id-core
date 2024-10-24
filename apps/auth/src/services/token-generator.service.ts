@@ -353,7 +353,7 @@ export class TokenGeneratorService {
   }
 
   async ttl(key: string): Promise<number> {
-    return await this.ttl(key);
+    return await this.tokenRedis.ttl(key);
   }
 }
 

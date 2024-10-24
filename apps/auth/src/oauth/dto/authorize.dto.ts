@@ -77,5 +77,5 @@ export class AuthorizeDto {
       message: 'validation.INVALID',
     }),
   })
-  scopes: Scope[];
+  scope: Scope[];
 }

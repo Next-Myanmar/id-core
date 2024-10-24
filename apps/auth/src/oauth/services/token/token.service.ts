@@ -7,7 +7,6 @@ import {
 import { AuthPrismaService, ClientOauth } from '@app/prisma/auth';
 import { Injectable, Logger } from '@nestjs/common';
 import { Grant, GrantHelper } from 'apps/auth/src/enums/grant.enum';
-import { Request } from 'express';
 import { TokenDto } from '../../dto/token.dto';
 import { TokenPairResponse } from '../../types/token-pair-response.interface';
 import { AuthorizationCodeService } from './authorization-code.service';
@@ -24,7 +23,6 @@ export class TokenService {
   ) {}
 
   async token(
-    req: Request,
     userAgentDetails: UserAgentDetails,
     generateTokenPairDto: TokenDto,
   ): Promise<TokenPairResponse> {
@@ -46,7 +44,6 @@ export class TokenService {
 
     if (generateTokenPairDto.grant_type === Grant.RefreshToken) {
       return await this.refreshToken.handleRefreshToken(
-        req,
         client,
         generateTokenPairDto,
         userAgentDetails,

@@ -11,10 +11,8 @@ import {
   HttpStatus,
   Logger,
   Post,
-  Req,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { TokenDto } from '../dto/token.dto';
 import { TokenService } from '../services/token/token.service';
 import { TokenPairResponse } from '../types/token-pair-response.interface';
@@ -30,14 +28,12 @@ export class TokenController {
   @UseGuards(UrlEncodedGuard)
   @Public()
   async generateTokenPair(
-    @Req() req: Request,
     @CurrentUserAgent() userAgentDetails: UserAgentDetails,
     @Body() generateTokenPairDto: TokenDto,
   ): Promise<TokenPairResponse> {
     this.logger.log('Token Start');
 
     const result = await this.tokenService.token(
-      req,
       userAgentDetails,
       generateTokenPairDto,
     );
