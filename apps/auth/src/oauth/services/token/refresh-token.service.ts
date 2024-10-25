@@ -14,12 +14,14 @@ import { TokenInfo } from '../../../types/token-info.interface';
 import { TokenDto } from '../../dto/token.dto';
 import { ScopeHelper } from '../../enums/scope.enum';
 import { TokenPairResponse } from '../../types/token-pair-response.interface';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class RefreshTokenService {
   private readonly logger = new Logger(RefreshTokenService.name);
 
   constructor(
+    private readonly config: ConfigService,
     private readonly prisma: AuthPrismaService,
     private readonly tokenService: TokenGeneratorService,
     private readonly usersOauthService: UsersOauthService,
@@ -68,10 +70,7 @@ export class RefreshTokenService {
           userAgentId: userAgentDetails.id,
         };
 
-        const currentTime = new Date();
-        const expiresAt = new Date(
-          currentTime.getTime() + tokenInfo.accessTokenLifetime * 1000,
-        );
+        const leeway = Number(this.config.getOrThrow('ACCESS_TOKEN_LEAKWAY'));
 
         const result = await this.tokenService.saveToken(
           AuthType.Oauth,
@@ -79,11 +78,12 @@ export class RefreshTokenService {
           newAuthInfo,
           tokenInfo.accessTokenLifetime,
           tokenInfo.refreshTokenLifetime,
+          leeway,
         );
 
         return {
           access_token: result.accessToken,
-          expires_at: expiresAt.getTime().toString(),
+          expires_in: tokenInfo.accessTokenLifetime,
           refresh_token: result.refreshToken,
         };
       });

@@ -82,6 +82,8 @@ export class AuthorizationCodeService {
           },
         });
 
+        const leeway = Number(this.config.getOrThrow('ACCESS_TOKEN_LEAKWAY'));
+
         const accessTokenLifetime = Number(
           this.config.getOrThrow('OAUTH_ACCESS_TOKEN_LIFETIME'),
         );
@@ -107,23 +109,19 @@ export class AuthorizationCodeService {
           profile,
         };
 
-        const currentTime = new Date();
-        const expiresAt = new Date(
-          currentTime.getTime() + accessTokenLifetime * 1000,
-        );
-
         const tokenInfo = await this.tokenService.saveToken(
           AuthType.Oauth,
           newClientInfo,
           newAuthInfo,
           accessTokenLifetime,
           refreshTokenLifetime,
+          leeway,
         );
 
         return {
           access_token: tokenInfo.accessToken,
           refresh_token: tokenInfo.refreshToken,
-          expires_at: expiresAt.getTime().toString(),
+          expires_in: accessTokenLifetime,
         };
       });
     });

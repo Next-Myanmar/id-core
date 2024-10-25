@@ -1,10 +1,5 @@
 import { emitEmail, UserAgentDetails } from '@app/common';
-import {
-  AuthUser,
-  AuthUsersService,
-  TokenPairResponse,
-  TokenType,
-} from '@app/grpc/auth-users';
+import { AuthUser, AuthUsersService, TokenType } from '@app/grpc/auth-users';
 import {
   User,
   UsersPrismaService,
@@ -24,6 +19,7 @@ import {
   RefreshTokenLifetimeKeys,
 } from '../constants/constants';
 import { ActivateUserDto } from '../dto/activate-user.dto';
+import { TokenPairResponse } from '../types/token-pair.response';
 import { VerificationService } from './verification.service';
 
 @Injectable()
@@ -84,7 +80,12 @@ export class ActivateUserService {
 
         await emitEmail(this.client, SEND_WELCOME_USER_EMAIL, data);
 
-        return tokenPair;
+        return {
+          accessToken: tokenPair.accessToken,
+          expiresIn: tokenPair.expiresIn,
+          tokenType: tokenPair.tokenType,
+          refreshToken: tokenPair.refreshToken,
+        };
       });
     });
 

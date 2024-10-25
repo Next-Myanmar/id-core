@@ -1,5 +1,4 @@
 import { CurrentUserAgent, Public, UserAgentDetails } from '@app/common';
-import { TokenPairResponse } from '@app/grpc/auth-users';
 import {
   Body,
   Controller,
@@ -10,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { LoginDto } from '../dto/login.dto';
 import { LoginService } from '../services/login.service';
+import { TokenPairResponse } from '../types/token-pair.response';
 
 @Controller('api')
 export class LoginController {

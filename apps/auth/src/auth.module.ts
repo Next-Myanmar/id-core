@@ -27,6 +27,7 @@ import { UsersModule } from './users/users.module';
       validationSchema: Joi.object({
         HTTP_PORT_AUTH: Joi.number().required(),
         AUTH_DATABASE_URL: Joi.string().required(),
+        ACCESS_TOKEN_LEAKWAY: Joi.number().required(),
       }),
     }),
     LoggerModule,

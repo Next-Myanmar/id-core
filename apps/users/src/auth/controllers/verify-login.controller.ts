@@ -1,5 +1,5 @@
 import { CurrentUserAgent, UserAgentDetails } from '@app/common';
-import { TokenPairResponse, TokenType } from '@app/grpc/auth-users';
+import { TokenType } from '@app/grpc/auth-users';
 import {
   Body,
   Controller,
@@ -13,6 +13,7 @@ import { CurrentAuthInfo } from '../../decorators/current-auth-info.decorator';
 import { AuthInfo } from '../../types/auth-info.interface';
 import { VerifyLoginDto } from '../dto/verify-login.dto';
 import { VerifyLoginService } from '../services/verify-login.service';
+import { TokenPairResponse } from '../types/token-pair.response';
 
 @Controller('api')
 export class VerifyLoginController {

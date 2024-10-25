@@ -5,6 +5,7 @@ import * as Joi from 'joi';
 import { TokenGeneratorService } from '../services/token-generator.service';
 import { AuthenticateController } from './controllers/authenticate.controller';
 import { AuthorizeController } from './controllers/authorize.controller';
+import { GetProfileController } from './controllers/get-profile.controller';
 import { LogoutController } from './controllers/logout.controller';
 import { TokenController } from './controllers/token.controller';
 import { AuthenticateService } from './services/authenticate.service';
@@ -14,6 +15,7 @@ import { LogoutService } from './services/logout.service';
 import { AuthorizationCodeService } from './services/token/authorization-code.service';
 import { RefreshTokenService } from './services/token/refresh-token.service';
 import { TokenService } from './services/token/token.service';
+import { GetProfileService } from './services/get-profile.service';
 
 @Module({
   imports: [
@@ -36,6 +38,7 @@ import { TokenService } from './services/token/token.service';
     TokenController,
     AuthenticateController,
     LogoutController,
+    GetProfileController,
   ],
   providers: [
     TokenGeneratorService,
@@ -46,6 +49,7 @@ import { TokenService } from './services/token/token.service';
     RefreshTokenService,
     AuthenticateService,
     LogoutService,
+    GetProfileService,
   ],
 })
 export class OauthModule {}

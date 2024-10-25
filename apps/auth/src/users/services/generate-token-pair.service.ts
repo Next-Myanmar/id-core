@@ -58,11 +58,7 @@ export class GenerateTokenPairService {
           tokenType: generateTokenPairDto.tokenType,
         };
 
-        const currentTime = new Date();
-        const expiresAt = new Date(
-          currentTime.getTime() +
-            generateTokenPairDto.accessTokenLifetime * 1000,
-        );
+        const leeway = Number(this.config.getOrThrow('ACCESS_TOKEN_LEAKWAY'));
 
         const result = await this.tokenService.saveToken(
           AuthType.Users,
@@ -70,11 +66,12 @@ export class GenerateTokenPairService {
           authInfo,
           generateTokenPairDto.accessTokenLifetime,
           generateTokenPairDto.refreshTokenLifetime,
+          leeway,
         );
 
         return {
           accessToken: result.accessToken,
-          expiresAt: expiresAt.getTime().toString(),
+          expiresIn: generateTokenPairDto.accessTokenLifetime,
           tokenType: authInfo.tokenType,
           refreshToken: result.refreshToken,
           deviceId: authInfo.deviceId,

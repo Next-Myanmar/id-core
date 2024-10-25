@@ -151,6 +151,7 @@ export class TokenGeneratorService {
     authInfo: AuthUsersInfo | AuthOauthInfo,
     accessTokenLifetime: number,
     refreshTokenLifetime: number,
+    accessTokenLeeway: number,
   ): Promise<TokenInfo> {
     this.logger.debug('saveToken Start');
 
@@ -171,7 +172,7 @@ export class TokenGeneratorService {
     await this.tokenRedis.setWithExpire(
       accessTokenKey,
       JSON.stringify(tokenInfo),
-      accessTokenLifetime,
+      accessTokenLifetime + accessTokenLeeway,
     );
 
     let keysInfo: KeysInfo = { accessTokenKey };

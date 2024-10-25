@@ -6,11 +6,7 @@ import {
   i18nValidationMessage,
   UserAgentDetails,
 } from '@app/common';
-import {
-  AuthUsersService,
-  TokenPairResponse,
-  TokenType,
-} from '@app/grpc/auth-users';
+import { AuthUsersService, TokenType } from '@app/grpc/auth-users';
 import {
   PasswordHistory,
   User,
@@ -30,6 +26,7 @@ import {
   RefreshTokenLifetimeKeys,
 } from '../constants/constants';
 import { SignupDto } from '../dto/signup.dto';
+import { TokenPairResponse } from '../types/token-pair.response';
 import { VerificationService } from './verification.service';
 
 @Injectable()
@@ -98,7 +95,12 @@ export class SignupService {
 
         await emitEmail(this.client, SEND_ACTIVATE_USER_EMAIL, data);
 
-        return tokenPair;
+        return {
+          accessToken: tokenPair.accessToken,
+          expiresIn: tokenPair.expiresIn,
+          tokenType: tokenPair.tokenType,
+          refreshToken: tokenPair.refreshToken,
+        };
       });
     });
 

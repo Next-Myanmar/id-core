@@ -1,9 +1,5 @@
 import { UserAgentDetails } from '@app/common';
-import {
-  AuthUsersService,
-  TokenPairResponse,
-  TokenType,
-} from '@app/grpc/auth-users';
+import { AuthUsersService, TokenType } from '@app/grpc/auth-users';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthInfo } from '../../types/auth-info.interface';
@@ -12,6 +8,7 @@ import {
   RefreshTokenLifetimeKeys,
 } from '../constants/constants';
 import { VerifyLoginDto } from '../dto/verify-login.dto';
+import { TokenPairResponse } from '../types/token-pair.response';
 import { VerificationService } from './verification.service';
 
 @Injectable()
@@ -58,7 +55,12 @@ export class VerifyLoginService {
         refreshTokenLifetime,
       });
 
-      return tokenPair;
+      return {
+        accessToken: tokenPair.accessToken,
+        expiresIn: tokenPair.expiresIn,
+        tokenType: tokenPair.tokenType,
+        refreshToken: tokenPair.refreshToken,
+      };
     });
 
     return result;

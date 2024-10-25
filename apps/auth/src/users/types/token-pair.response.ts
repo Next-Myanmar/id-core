@@ -2,7 +2,7 @@ import { TokenType } from '@app/grpc/auth-users';
 
 export interface TokenPairResponse {
   accessToken: string;
-  expiresAt: string;
+  expiresIn: number;
   tokenType: TokenType;
   refreshToken: string;
 }

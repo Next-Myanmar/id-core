@@ -2,19 +2,21 @@ import { UserAgentDetails } from '@app/common';
 import { TokenType } from '@app/grpc/auth-users';
 import { AuthPrismaService } from '@app/prisma/auth';
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 import { AuthType } from '../../enums/auth-type.enum';
 import { TokenGeneratorService } from '../../services/token-generator.service';
 import { AuthUsersInfo } from '../../types/users-auth-info.interface';
 import { getTokenFromAuthorization } from '../../utils/utils';
 import { RefreshTokenDto } from '../dto/refresh-token.dto';
-import { TokenPairResponse } from '../types/token-pair-response.interface';
+import { TokenPairResponse } from '../types/token-pair.response';
 
 @Injectable()
 export class RefreshTokenService {
   private readonly logger = new Logger(RefreshTokenService.name);
 
   constructor(
+    private readonly config: ConfigService,
     private readonly prisma: AuthPrismaService,
     private readonly tokenService: TokenGeneratorService,
   ) {}
@@ -91,22 +93,20 @@ export class RefreshTokenService {
           userAgentId: userAgentDetails.id,
         };
 
-        const currentTime = new Date();
-        const expiresAt = new Date(
-          currentTime.getTime() + tokenInfo.accessTokenLifetime * 1000,
-        );
+        const leeway = Number(this.config.getOrThrow('ACCESS_TOKEN_LEAKWAY'));
 
         const result = await this.tokenService.saveToken(
           AuthType.Users,
           tokenInfo.client,
           newAuthInfo,
           tokenInfo.accessTokenLifetime,
-          tokenInfo.refreshTokenLifetime,
+          refreshTokenLifetime,
+          leeway,
         );
 
         return {
           accessToken: result.accessToken,
-          expiresAt: expiresAt.getTime().toString(),
+          expiresIn: tokenInfo.accessTokenLifetime,
           tokenType: authInfo.tokenType,
           refreshToken: result.refreshToken,
         };

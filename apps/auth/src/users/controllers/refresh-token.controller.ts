@@ -18,7 +18,7 @@ import { Throttle } from '@nestjs/throttler';
 import { Request } from 'express';
 import { RefreshTokenDto } from '../dto/refresh-token.dto';
 import { RefreshTokenService } from '../services/refresh-token.service';
-import { TokenPairResponse } from '../types/token-pair-response.interface';
+import { TokenPairResponse } from '../types/token-pair.response';
 
 @Controller('api/users')
 export class RefreshTokenController {

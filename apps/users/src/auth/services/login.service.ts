@@ -5,11 +5,7 @@ import {
   i18nValidationMessage,
   UserAgentDetails,
 } from '@app/common';
-import {
-  AuthUsersService,
-  TokenPairResponse,
-  TokenType,
-} from '@app/grpc/auth-users';
+import { AuthUsersService, TokenType } from '@app/grpc/auth-users';
 import { User, UsersPrismaService } from '@app/prisma/users';
 import {
   NOTIFICATIONS_USERS_SERVERS_NAME,
@@ -24,6 +20,7 @@ import {
   RefreshTokenLifetimeKeys,
 } from '../constants/constants';
 import { LoginDto } from '../dto/login.dto';
+import { TokenPairResponse } from '../types/token-pair.response';
 import { VerificationService } from './verification.service';
 
 @Injectable()
@@ -80,7 +77,12 @@ export class LoginService {
 
       await emitEmail(this.client, SEND_VERIFY_LOGIN_EMAIL, data);
 
-      return tokenPair;
+      return {
+        accessToken: tokenPair.accessToken,
+        expiresIn: tokenPair.expiresIn,
+        tokenType: tokenPair.tokenType,
+        refreshToken: tokenPair.refreshToken,
+      };
     });
 
     return result;

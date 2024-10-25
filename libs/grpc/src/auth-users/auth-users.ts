@@ -31,7 +31,7 @@ export interface GenerateTokenPairRequest {
 
 export interface TokenPairResponse {
   accessToken: string;
-  expiresAt: string;
+  expiresIn: number;
   tokenType: TokenType;
   refreshToken: string;
   deviceId: string;

@@ -3,5 +3,5 @@ export class TokenPairResponse {
 
   refresh_token?: string;
 
-  expires_at: string;
+  expires_in: number;
 }
