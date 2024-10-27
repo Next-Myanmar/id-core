@@ -58,7 +58,7 @@ export class GenerateTokenPairService {
           tokenType: generateTokenPairDto.tokenType,
         };
 
-        const leeway = Number(this.config.getOrThrow('ACCESS_TOKEN_LEAKWAY'));
+        const leeway = Number(this.config.getOrThrow('TOKEN_LEAKWAY'));
 
         const result = await this.tokenService.saveToken(
           AuthType.Users,

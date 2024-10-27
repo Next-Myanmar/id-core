@@ -22,5 +22,7 @@
   "ClientName": "Client Name",
   "ClientSecretName": "Client Secret Name",
   "RedirectUri": "Redirect Uri",
-  "Grants": "Grants"
+  "Grants": "Grants",
+  "token": "token",
+  "token_type_hint": "token_type_hint"
 }

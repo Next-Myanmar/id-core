@@ -32,6 +32,11 @@ export class AuthenticateService {
       throw new UnauthorizedException();
     }
 
+    if (tokenInfo.accessTokenExpiresAt < Date.now()) {
+      this.logger.debug('The access token has been expired.');
+      throw new UnauthorizedException();
+    }
+
     const authInfo: AuthUsersInfo = tokenInfo.authInfo as AuthUsersInfo;
 
     const deviceId = authInfo.deviceId;

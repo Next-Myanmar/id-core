@@ -63,6 +63,11 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException();
     }
 
+    if (tokenInfo.accessTokenExpiresAt < Date.now()) {
+      this.logger.debug('The access token has been expired.');
+      throw new UnauthorizedException();
+    }
+
     req.auth = tokenInfo;
 
     const deviceId = tokenInfo.authInfo.deviceId;

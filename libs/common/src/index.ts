@@ -1,6 +1,7 @@
 export * from './database';
 export * from './decorators';
 export * from './email';
+export * from './exceptions';
 export * from './graphql';
 export * from './guards';
 export * from './health';

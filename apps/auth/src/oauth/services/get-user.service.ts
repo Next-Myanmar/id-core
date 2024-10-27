@@ -4,12 +4,12 @@ import { AuthOauthInfo } from '../../types/auth-oauth-info.interface';
 import { TokenInfo } from '../../types/token-info.interface';
 
 @Injectable()
-export class GetProfileService {
-  private readonly logger = new Logger(GetProfileService.name);
+export class GetUserService {
+  private readonly logger = new Logger(GetUserService.name);
 
   constructor() {}
 
-  async getProfile({ authInfo }: TokenInfo): Promise<Profile> {
+  async getUser({ authInfo }: TokenInfo): Promise<Profile> {
     const authOauthInfo: AuthOauthInfo = authInfo as AuthOauthInfo;
 
     return authOauthInfo.profile;

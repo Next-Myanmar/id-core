@@ -65,92 +65,103 @@ export class I18nExceptionFilter implements ExceptionFilter {
   protected readonly logger = new Logger(I18nExceptionFilter.name);
 
   catch(exception: any, host: ArgumentsHost): any {
-    if (exception.name === 'I18nValidationException') {
-      return this.handleValidationError(exception, host);
-    }
-
-    let exceptionName: string;
-    if (
-      exception.name === 'PrismaClientKnownRequestError' ||
-      exception.name === 'PrismaClientValidationError'
-    ) {
-      if (
-        exception.code === PrismaErrorCodes.NOT_FOUND ||
-        exception.code === PrismaErrorCodes.INVALID_COLUMN_DATA
-      ) {
-        exceptionName = NotFoundException.name;
-      } else {
-        this.logger.warn(`Prisma Error: ${exception}`);
-
-        exceptionName = InternalServerErrorException.name;
-      }
-    } else {
-      exceptionName = this.getException(exception).name;
-    }
-
-    let errorDetail = ErrorDetails[exceptionName];
-
-    if (errorDetail) {
-      this.logger.debug(`Error: ${exception}`);
-    } else {
-      errorDetail = ErrorDetails.InternalServerErrorException;
-      this.logger.warn(`Error: ${exception}`);
-    }
-
-    const translateKey = errorDetail.key;
-
     const i18nContext = I18nContext.current();
 
-    const message: string = i18nContext.t(translateKey, {
-      lang: i18nContext.lang,
-    });
-
-    const hostType: string = host.getType();
-
-    const code = errorDetail.codes[hostType];
-
-    switch (hostType) {
-      case 'http': {
-        const httpResponse = host.switchToHttp().getResponse();
-        const responseBody = {
-          statusCode: code,
-          message,
-        };
-
-        httpResponse.status(code).send(responseBody);
-        break;
+    try {
+      if (exception.name === 'I18nValidationException') {
+        return this.handleValidationError(i18nContext, exception, host);
       }
-      case 'graphql': {
-        exception.message = message;
 
-        try {
-          const response = exception.getResponse();
-          response.message = message;
-          response.code = code;
+      let exceptionName: string;
 
-          delete response.error;
-        } catch {}
+      if (exception.name === 'CorsDeniedException') {
+        exceptionName = InternalServerErrorException.name;
+        this.logger.error(`Cors Denied: ${exception.origin}`);
+      } else if (
+        exception.name === 'PrismaClientKnownRequestError' ||
+        exception.name === 'PrismaClientValidationError'
+      ) {
+        if (
+          exception.code === PrismaErrorCodes.NOT_FOUND ||
+          exception.code === PrismaErrorCodes.INVALID_COLUMN_DATA
+        ) {
+          exceptionName = NotFoundException.name;
+        } else {
+          this.logger.warn(`Prisma Error: ${exception}`);
 
-        return exception;
-      }
-      case 'rpc': {
-        if (host.getArgByIndex(1) instanceof RmqContext) {
-          const context: RmqContext = host.getArgByIndex(1);
-          this.logger.warn(
-            {
-              event: context.getArgByIndex(2),
-              details: message,
-            },
-            'Validation error occured',
-          );
+          exceptionName = InternalServerErrorException.name;
         }
-        return throwError(() => ({
-          code,
-          message,
-        }));
+      } else {
+        exceptionName = this.getException(exception).name;
       }
-      default:
-        throw new Error('Unexpected host type: ' + hostType);
+
+      let errorDetail = ErrorDetails[exceptionName];
+
+      if (errorDetail) {
+        this.logger.debug(`Error: ${exception}`);
+      } else {
+        errorDetail = ErrorDetails.InternalServerErrorException;
+        this.logger.warn(`Error: ${exception}`);
+      }
+
+      const translateKey = errorDetail.key;
+
+      const message: string = exception.message;
+      if (i18nContext) {
+        i18nContext.t(translateKey, {
+          lang: i18nContext.lang,
+        });
+      }
+
+      const hostType: string = host.getType();
+
+      const code = errorDetail.codes[hostType];
+
+      switch (hostType) {
+        case 'http': {
+          const httpResponse = host.switchToHttp().getResponse();
+          const responseBody = {
+            statusCode: code,
+            message,
+          };
+
+          httpResponse.status(code).send(responseBody);
+          break;
+        }
+        case 'graphql': {
+          exception.message = message;
+
+          try {
+            const response = exception.getResponse();
+            response.message = message;
+            response.code = code;
+
+            delete response.error;
+          } catch {}
+
+          return exception;
+        }
+        case 'rpc': {
+          if (host.getArgByIndex(1) instanceof RmqContext) {
+            const context: RmqContext = host.getArgByIndex(1);
+            this.logger.warn(
+              {
+                event: context.getArgByIndex(2),
+                details: message,
+              },
+              'Validation error occured',
+            );
+          }
+          return throwError(() => ({
+            code,
+            message,
+          }));
+        }
+        default:
+          throw new Error('Unexpected host type: ' + hostType);
+      }
+    } catch (error: any) {
+      // todo: handle error
     }
   }
 
@@ -159,11 +170,10 @@ export class I18nExceptionFilter implements ExceptionFilter {
   }
 
   private handleValidationError(
+    i18nContext: any,
     exception: I18nValidationException,
     host: ArgumentsHost,
   ): any {
-    const i18nContext = I18nContext.current();
-
     const response = exception.getResponse() as any;
 
     const errorMessages = response.message || [];

@@ -11,6 +11,7 @@ services:
     environment:
       - TOKEN_REDIS_HOST=redis
       - THROTTLER_REDIS_HOST=redis
+      - CORS_REDIS_HOST=redis
       - USERS_OAUTH_GRPC_URL=users:5002
     ports:
       - '3001:3001'

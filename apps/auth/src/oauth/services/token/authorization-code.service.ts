@@ -82,7 +82,7 @@ export class AuthorizationCodeService {
           },
         });
 
-        const leeway = Number(this.config.getOrThrow('ACCESS_TOKEN_LEAKWAY'));
+        const leeway = Number(this.config.getOrThrow('TOKEN_LEAKWAY'));
 
         const accessTokenLifetime = Number(
           this.config.getOrThrow('OAUTH_ACCESS_TOKEN_LIFETIME'),

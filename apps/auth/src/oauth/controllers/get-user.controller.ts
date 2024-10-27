@@ -2,24 +2,24 @@ import { Profile } from '@app/grpc/users-oauth';
 import { Controller, Get, HttpCode, HttpStatus, Logger } from '@nestjs/common';
 import { CurrentTokenInfo } from '../../decorators/current-token-info.decorator';
 import { TokenInfo } from '../../types/token-info.interface';
-import { GetProfileService } from '../services/get-profile.service';
+import { GetUserService } from '../services/get-user.service';
 
 @Controller('api/oauth')
-export class GetProfileController {
+export class GetUserController {
   private readonly logger = new Logger(
-    `Oauth (API) - ${GetProfileController.name}`,
+    `Oauth (API) - ${GetUserController.name}`,
   );
 
-  constructor(private readonly getProfileService: GetProfileService) {}
+  constructor(private readonly getUserService: GetUserService) {}
 
-  @Get('profile')
+  @Get('user')
   @HttpCode(HttpStatus.OK)
   async logout(@CurrentTokenInfo() tokenInfo: TokenInfo): Promise<Profile> {
-    this.logger.log('Get Profile Start');
+    this.logger.log('Get User Start');
 
-    const result = await this.getProfileService.getProfile(tokenInfo);
+    const result = await this.getUserService.getUser(tokenInfo);
 
-    this.logger.log('Get Profile End');
+    this.logger.log('Get User End');
 
     return result;
   }

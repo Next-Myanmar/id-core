@@ -12,6 +12,7 @@ import { ClientOauth } from '../types/client-oauth.interface';
 import { KeysInfo } from '../types/keys-info';
 import { TokenInfo } from '../types/token-info.interface';
 import { AuthUsersInfo } from '../types/users-auth-info.interface';
+import { getTimestamp } from '../utils/utils';
 
 @Injectable()
 export class TokenGeneratorService {
@@ -65,7 +66,7 @@ export class TokenGeneratorService {
     return result;
   }
 
-  private async saveKeysInfo(
+  async saveKeysInfo(
     authType: AuthType,
     client: ClientOauth,
     authInfo: AuthUsersInfo | AuthOauthInfo,
@@ -92,6 +93,56 @@ export class TokenGeneratorService {
     );
 
     this.logger.debug('saveKeysInfo End');
+  }
+
+  async updateKeysInfo(
+    authType: AuthType,
+    client: ClientOauth,
+    authInfo: AuthUsersInfo | AuthOauthInfo,
+    updateKeysInfo: KeysInfo,
+  ): Promise<void> {
+    this.logger.debug('updateKeysInfo Start');
+
+    const key = this.getKeysInfoKey(
+      authType,
+      client.id,
+      authInfo.userId,
+      authInfo.deviceId,
+    );
+
+    await this.tokenRedis.update(key, JSON.stringify(updateKeysInfo));
+
+    this.logger.debug(`Updated Keys Info: ${JSON.stringify(updateKeysInfo)}`);
+
+    this.logger.debug('updateKeysInfo End');
+  }
+
+  async getKeysInfo(
+    authType: AuthType,
+    client: ClientOauth,
+    authInfo: AuthUsersInfo | AuthOauthInfo,
+  ): Promise<KeysInfo | undefined> {
+    this.logger.debug('getKeysInfo Start');
+
+    const key = this.getKeysInfoKey(
+      authType,
+      client.id,
+      authInfo.userId,
+      authInfo.deviceId,
+    );
+
+    const value = await this.tokenRedis.get(key);
+    let data: KeysInfo;
+
+    this.logger.debug(`Result: ${value}`);
+
+    if (value) {
+      data = JSON.parse(value);
+    }
+
+    this.logger.debug('getKeysInfo End');
+
+    return data;
   }
 
   async revokeKeysInfoByKey(key: string): Promise<void> {
@@ -151,7 +202,7 @@ export class TokenGeneratorService {
     authInfo: AuthUsersInfo | AuthOauthInfo,
     accessTokenLifetime: number,
     refreshTokenLifetime: number,
-    accessTokenLeeway: number,
+    leeway: number,
   ): Promise<TokenInfo> {
     this.logger.debug('saveToken Start');
 
@@ -159,9 +210,12 @@ export class TokenGeneratorService {
 
     const accessToken = await this.generateRandomToken();
 
+    const accessTokenExpiresAt = getTimestamp(accessTokenLifetime);
+
     const tokenInfo: TokenInfo = {
       accessToken,
       accessTokenLifetime,
+      accessTokenExpiresAt,
       client,
       authInfo,
       authType,
@@ -172,28 +226,31 @@ export class TokenGeneratorService {
     await this.tokenRedis.setWithExpire(
       accessTokenKey,
       JSON.stringify(tokenInfo),
-      accessTokenLifetime + accessTokenLeeway,
+      accessTokenLifetime + leeway,
     );
 
     let keysInfo: KeysInfo = { accessTokenKey };
-    let lifetime = accessTokenLifetime;
+    let lifetime = accessTokenLifetime + leeway;
 
     if (client.grants.includes(Grant.RefreshToken)) {
       const refreshToken = await this.generateRandomToken();
 
       const refreshTokenKey = this.getRefreshTokenKey(authType, refreshToken);
 
+      const refreshTokenExpiresAt = getTimestamp(refreshTokenLifetime);
+
       tokenInfo.refreshToken = refreshToken;
       tokenInfo.refreshTokenLifetime = refreshTokenLifetime;
+      tokenInfo.refreshTokenExpiresAt = refreshTokenExpiresAt;
 
       await this.tokenRedis.setWithExpire(
         refreshTokenKey,
         JSON.stringify(tokenInfo),
-        refreshTokenLifetime,
+        refreshTokenLifetime + leeway,
       );
 
       keysInfo = { ...keysInfo, refreshTokenKey };
-      lifetime = refreshTokenLifetime;
+      lifetime = refreshTokenLifetime + leeway;
     }
 
     await this.saveKeysInfo(authType, client, authInfo, lifetime, keysInfo);
@@ -206,7 +263,7 @@ export class TokenGeneratorService {
   async getAccessToken(
     authType: AuthType,
     accessToken: string,
-  ): Promise<TokenInfo> {
+  ): Promise<TokenInfo | undefined> {
     this.logger.debug('getAccessToken Start');
 
     this.logger.debug(`Access Token: ${accessToken}`);
@@ -230,7 +287,7 @@ export class TokenGeneratorService {
   async getRefreshToken(
     authType: AuthType,
     refreshToken: string,
-  ): Promise<TokenInfo> {
+  ): Promise<TokenInfo | undefined> {
     this.logger.debug('getRefreshToken Start');
 
     this.logger.debug(`Refresh Token: ${refreshToken}`);
@@ -264,6 +321,20 @@ export class TokenGeneratorService {
     this.logger.debug(`Deleted accessTokenKey: ${accessTokenKey}`);
 
     this.logger.debug('revokeAccessToken End');
+  }
+
+  async revokeRefreshToken(
+    authType: AuthType,
+    refrshToken: string,
+  ): Promise<void> {
+    this.logger.debug('revokeRefreshToken Start');
+
+    const refreshTokenKey = this.getRefreshTokenKey(authType, refrshToken);
+
+    await this.tokenRedis.delete(refreshTokenKey);
+    this.logger.debug(`Deleted refreshToken: ${refreshTokenKey}`);
+
+    this.logger.debug('revokeRefreshToken End');
   }
 
   async saveAuthorizationCode(

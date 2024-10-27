@@ -2,20 +2,25 @@ import { UsersOauthServiceModule } from '@app/grpc/users-oauth';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
+import { CorsService } from '../services/cors.service';
 import { TokenGeneratorService } from '../services/token-generator.service';
 import { AuthenticateController } from './controllers/authenticate.controller';
 import { AuthorizeController } from './controllers/authorize.controller';
-import { GetProfileController } from './controllers/get-profile.controller';
+import { GetUserController } from './controllers/get-user.controller';
+import { IntrospectTokenController } from './controllers/introspect-token.controller';
 import { LogoutController } from './controllers/logout.controller';
+import { RevokeTokenController } from './controllers/revoke-token.controller';
 import { TokenController } from './controllers/token.controller';
 import { AuthenticateService } from './services/authenticate.service';
 import { AuthorizeService } from './services/authorize/authorize.service';
 import { CodeService } from './services/authorize/code.service';
+import { GetUserService } from './services/get-user.service';
+import { IntrospectTokenService } from './services/introspect-token.service';
 import { LogoutService } from './services/logout.service';
+import { RevokeTokenService } from './services/revoke-token.service';
 import { AuthorizationCodeService } from './services/token/authorization-code.service';
 import { RefreshTokenService } from './services/token/refresh-token.service';
 import { TokenService } from './services/token/token.service';
-import { GetProfileService } from './services/get-profile.service';
 
 @Module({
   imports: [
@@ -38,10 +43,13 @@ import { GetProfileService } from './services/get-profile.service';
     TokenController,
     AuthenticateController,
     LogoutController,
-    GetProfileController,
+    GetUserController,
+    RevokeTokenController,
+    IntrospectTokenController,
   ],
   providers: [
     TokenGeneratorService,
+    CorsService,
     TokenService,
     CodeService,
     AuthorizeService,
@@ -49,7 +57,9 @@ import { GetProfileService } from './services/get-profile.service';
     RefreshTokenService,
     AuthenticateService,
     LogoutService,
-    GetProfileService,
+    GetUserService,
+    RevokeTokenService,
+    IntrospectTokenService,
   ],
 })
 export class OauthModule {}

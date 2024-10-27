@@ -1,4 +1,8 @@
-import { I18nExceptionFilter, I18nValidationPipe } from '@app/common';
+import {
+  CorsDeniedException,
+  I18nExceptionFilter,
+  I18nValidationPipe,
+} from '@app/common';
 import { USERS_OAUTH_PACKAGE_NAME } from '@app/grpc/users-oauth';
 import { ReflectionService } from '@grpc/reflection';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
@@ -58,13 +62,13 @@ async function bootstrap() {
 
   const corsOptions: CorsOptions = {
     origin: (origin, callback) => {
-      if (allowedOrigins.includes(origin) || !origin) {
+      if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(new Error('Not allowed by CORS'));
+        callback(new CorsDeniedException(origin));
       }
     },
-    methods: 'GET,PUT,PATCH,POST,DELETE',
+    methods: 'GET,POST,OPTIONS',
     credentials: false,
   };
 

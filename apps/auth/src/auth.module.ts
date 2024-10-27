@@ -15,6 +15,7 @@ import { GrpcMetadataResolver } from 'nestjs-i18n';
 import { DevicesModule } from './devices/devices.module';
 import { AuthGuard } from './guards/auth.guard';
 import { OauthModule } from './oauth/oauth.module';
+import { CorsRedisModule } from './redis/cors-redis.module';
 import { TokenRedisModule } from './redis/token-redis.module';
 import { TokenGeneratorService } from './services/token-generator.service';
 import { UsersModule } from './users/users.module';
@@ -27,7 +28,8 @@ import { UsersModule } from './users/users.module';
       validationSchema: Joi.object({
         HTTP_PORT_AUTH: Joi.number().required(),
         AUTH_DATABASE_URL: Joi.string().required(),
-        ACCESS_TOKEN_LEAKWAY: Joi.number().required(),
+        TOKEN_LEAKWAY: Joi.number().required(),
+        CORS_TTL: Joi.number().required(),
       }),
     }),
     LoggerModule,
@@ -39,6 +41,7 @@ import { UsersModule } from './users/users.module';
       envFilePath: './apps/auth/.env',
     }),
     TokenRedisModule,
+    CorsRedisModule,
     HealthModule,
     AuthPrismaModule,
     GraphQLModule.forRoot(),

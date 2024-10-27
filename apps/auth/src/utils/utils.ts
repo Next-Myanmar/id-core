@@ -6,3 +6,11 @@ export function getTokenFromAuthorization(authorization: string) {
   }
   return authorization.substring(7);
 }
+
+export function getTimestamp(lifetimeInSeconds: number) {
+  const timestamp = new Date();
+
+  timestamp.setSeconds(timestamp.getSeconds() + lifetimeInSeconds);
+
+  return timestamp.getTime();
+}

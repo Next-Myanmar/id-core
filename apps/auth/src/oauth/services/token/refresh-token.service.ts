@@ -70,7 +70,7 @@ export class RefreshTokenService {
           userAgentId: userAgentDetails.id,
         };
 
-        const leeway = Number(this.config.getOrThrow('ACCESS_TOKEN_LEAKWAY'));
+        const leeway = Number(this.config.getOrThrow('TOKEN_LEAKWAY'));
 
         const result = await this.tokenService.saveToken(
           AuthType.Oauth,

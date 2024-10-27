@@ -1,4 +1,4 @@
-import { I18nExceptionFilter, I18nValidationPipe } from '@app/common';
+import { CorsDeniedException, I18nExceptionFilter, I18nValidationPipe } from '@app/common';
 import { AUTH_OAUTH_PACKAGE_NAME } from '@app/grpc/auth-oauth';
 import { AUTH_USERS_PACKAGE_NAME } from '@app/grpc/auth-users';
 import { ReflectionService } from '@grpc/reflection';
@@ -9,10 +9,13 @@ import { Transport } from '@nestjs/microservices';
 import { Logger } from 'nestjs-pino';
 import { join } from 'path';
 import { AuthModule } from './auth.module';
+import { CorsService } from './services/cors.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AuthModule, { bufferLogs: true });
   const configService = app.get(ConfigService);
+
+  const corsService = app.get(CorsService);
 
   const isDevelopment = process.env.NODE_ENV !== 'prod';
 
@@ -79,14 +82,18 @@ async function bootstrap() {
     .map((origin: string) => origin.trim());
 
   const corsOptions: CorsOptions = {
-    origin: (origin, callback) => {
-      if (allowedOrigins.includes(origin) || !origin) {
+    origin: async (origin, callback) => {
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        (await corsService.isAllow(origin))
+      ) {
         callback(null, true);
       } else {
-        callback(new Error('Not allowed by CORS'));
+        callback(new CorsDeniedException(origin));
       }
     },
-    methods: 'GET,PUT,PATCH,POST,DELETE',
+    methods: 'GET,POST,OPTIONS',
     credentials: false,
   };
 

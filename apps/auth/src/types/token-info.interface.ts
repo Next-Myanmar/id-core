@@ -8,9 +8,13 @@ export interface TokenInfo {
 
   accessTokenLifetime: number;
 
+  accessTokenExpiresAt: number;
+
   refreshToken?: string;
 
   refreshTokenLifetime?: number;
+
+  refreshTokenExpiresAt?: number;
 
   client: ClientOauth;
 

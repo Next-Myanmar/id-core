@@ -42,6 +42,13 @@ export class RefreshTokenService {
       throw new UnauthorizedException();
     }
 
+    if (tokenInfo.refreshTokenExpiresAt < Date.now()) {
+      this.logger.debug('The refresh token has been expired.');
+      throw new UnauthorizedException();
+    }
+
+    const leeway = Number(this.config.getOrThrow('TOKEN_LEAKWAY'));
+
     if (tokenInfo.accessToken !== accessToken) {
       this.logger.warn(
         `The access tokens are different. Stored Access Token: ${tokenInfo.accessToken}, Actual Access Token: ${accessToken}`,
@@ -68,7 +75,9 @@ export class RefreshTokenService {
         AuthType.Users,
         refreshTokenDto.refreshToken,
       );
-      refreshTokenLifetime = await this.tokenService.ttl(refreshTokenKey);
+
+      refreshTokenLifetime =
+        (await this.tokenService.ttl(refreshTokenKey)) - leeway;
     }
 
     this.logger.debug(`New Refresh Token Lifetime: ${refreshTokenLifetime}`);
@@ -92,8 +101,6 @@ export class RefreshTokenService {
           ...authInfo,
           userAgentId: userAgentDetails.id,
         };
-
-        const leeway = Number(this.config.getOrThrow('ACCESS_TOKEN_LEAKWAY'));
 
         const result = await this.tokenService.saveToken(
           AuthType.Users,

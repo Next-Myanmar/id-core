@@ -31,6 +31,7 @@ model ClientOauth {
   clientId   String @unique
   clientName String
 
+  homeUri     String
   redirectUri String
   grants      Grant[]
 
