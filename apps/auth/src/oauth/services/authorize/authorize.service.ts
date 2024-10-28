@@ -156,6 +156,7 @@ export class AuthorizeService {
       client: {
         id: client.id,
         clientId: client.clientId,
+        homeUri: client.homeUri,
         grants: client.grants.map((grant) => GrantHelper.convertToGrant(grant)),
       },
       clientPrisma: client,

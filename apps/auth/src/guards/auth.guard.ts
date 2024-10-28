@@ -1,4 +1,4 @@
-import { checkPublic } from '@app/common';
+import { checkPublic, CorsDeniedException } from '@app/common';
 import { AuthPrismaService } from '@app/prisma/auth';
 import {
   CanActivate,
@@ -61,6 +61,17 @@ export class AuthGuard implements CanActivate {
 
     if (!tokenInfo) {
       throw new UnauthorizedException();
+    }
+
+    if (
+      tokenInfo.authType === AuthType.Oauth &&
+      req.header.origin &&
+      req.header.origin !== tokenInfo.client.homeUri
+    ) {
+      throw new CorsDeniedException(
+        req.header.origin,
+        tokenInfo.client.clientId,
+      );
     }
 
     if (tokenInfo.accessTokenExpiresAt < Date.now()) {

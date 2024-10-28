@@ -1,4 +1,5 @@
 import {
+  CurrentOrigin,
   CurrentUserAgent,
   Public,
   UrlEncodedGuard,
@@ -29,12 +30,14 @@ export class TokenController {
   @Public()
   async generateTokenPair(
     @CurrentUserAgent() userAgentDetails: UserAgentDetails,
+    @CurrentOrigin() origin: string | null,
     @Body() generateTokenPairDto: TokenDto,
   ): Promise<TokenPairResponse> {
     this.logger.log('Token Start');
 
     const result = await this.tokenService.token(
       userAgentDetails,
+      origin,
       generateTokenPairDto,
     );
 

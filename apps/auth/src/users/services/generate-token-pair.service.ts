@@ -27,6 +27,7 @@ export class GenerateTokenPairService {
       const client: ClientOauth = {
         id: this.config.getOrThrow('USERS_APP_CLIENT_OAUTH_ID'),
         clientId: '',
+        homeUri: '',
         grants: [Grant.RefreshToken],
       };
 

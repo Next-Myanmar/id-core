@@ -1,5 +1,6 @@
 import {
   compareHash,
+  CorsDeniedException,
   I18nValidationException,
   i18nValidationMessage,
 } from '@app/common';
@@ -19,8 +20,15 @@ export class RevokeTokenService {
     private readonly tokenService: TokenGeneratorService,
   ) {}
 
-  async revoke(revokeDto: RevokeTokenDto): Promise<void> {
-    await this.checkClient(revokeDto.client_id, revokeDto.client_secret);
+  async revoke(
+    revokeDto: RevokeTokenDto,
+    origin: string | null,
+  ): Promise<void> {
+    await this.checkClient(
+      revokeDto.client_id,
+      revokeDto.client_secret,
+      origin,
+    );
 
     if (revokeDto.token_type_hint === TokenTypeHint.AccessToken) {
       await this.revokeAccessToken(revokeDto.client_id, revokeDto.token, true);
@@ -42,6 +50,7 @@ export class RevokeTokenService {
   private async checkClient(
     clientId: string,
     clientSecret: string,
+    origin: string | null,
   ): Promise<void> {
     const client = await this.prisma.clientOauth.findUnique({
       where: {
@@ -84,6 +93,10 @@ export class RevokeTokenService {
           message: 'validation.INVALID',
         }),
       });
+    }
+
+    if (origin && origin !== client.homeUri) {
+      throw new CorsDeniedException(origin, client.clientId);
     }
   }
 
@@ -184,12 +197,6 @@ export class RevokeTokenService {
           const ttl = await this.tokenService.ttl(keysInfo.accessTokenKey);
 
           keysInfo.refreshTokenKey = undefined;
-
-          await this.tokenService.revokeKeysInfo(
-            AuthType.Oauth,
-            tokenInfo.client,
-            tokenInfo.authInfo,
-          );
 
           await this.tokenService.saveKeysInfo(
             AuthType.Oauth,

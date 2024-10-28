@@ -1,4 +1,4 @@
-import { Public, UrlEncodedGuard } from '@app/common';
+import { CurrentOrigin, Public, UrlEncodedGuard } from '@app/common';
 import {
   Body,
   Controller,
@@ -7,7 +7,6 @@ import {
   Logger,
   Post,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { RevokeTokenDto } from '../dto/revoke-token.dto';
 import { RevokeTokenService } from '../services/revoke-token.service';
@@ -24,10 +23,13 @@ export class RevokeTokenController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(UrlEncodedGuard)
   @Public()
-  async revoke(@Body() revokeDto: RevokeTokenDto): Promise<void> {
+  async revoke(
+    @Body() revokeDto: RevokeTokenDto,
+    @CurrentOrigin() origin: string | null,
+  ): Promise<void> {
     this.logger.log('Revoke Token Start');
 
-    await this.revokeTokenService.revoke(revokeDto);
+    await this.revokeTokenService.revoke(revokeDto, origin);
 
     this.logger.log('Revoke Token End');
   }

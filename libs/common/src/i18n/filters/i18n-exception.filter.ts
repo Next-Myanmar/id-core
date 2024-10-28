@@ -76,7 +76,9 @@ export class I18nExceptionFilter implements ExceptionFilter {
 
       if (exception.name === 'CorsDeniedException') {
         exceptionName = InternalServerErrorException.name;
-        this.logger.error(`Cors Denied: ${exception.origin}`);
+        this.logger.error(
+          `Cors Denied: Origin:${exception.origin}, client_id: ${exception.clientId}`,
+        );
       } else if (
         exception.name === 'PrismaClientKnownRequestError' ||
         exception.name === 'PrismaClientValidationError'

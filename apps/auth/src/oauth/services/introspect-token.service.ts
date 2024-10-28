@@ -1,5 +1,6 @@
 import {
   compareHash,
+  CorsDeniedException,
   I18nValidationException,
   i18nValidationMessage,
 } from '@app/common';
@@ -24,10 +25,12 @@ export class IntrospectTokenService {
 
   async introspect(
     introspectDto: IntrospectTokenDto,
+    origin: string | null,
   ): Promise<IntrospectResponse> {
     await this.checkClient(
       introspectDto.client_id,
       introspectDto.client_secret,
+      origin,
     );
 
     let tokenInfo: TokenInfo;
@@ -81,6 +84,7 @@ export class IntrospectTokenService {
   private async checkClient(
     clientId: string,
     clientSecret: string,
+    origin: string | null,
   ): Promise<void> {
     const client = await this.prisma.clientOauth.findUnique({
       where: {
@@ -124,6 +128,10 @@ export class IntrospectTokenService {
         }),
       });
     }
+
+    if (origin && origin !== client.homeUri) {
+      throw new CorsDeniedException(origin, client.clientId);
+    }
   }
 
   private async getAccessToken(
@@ -135,7 +143,7 @@ export class IntrospectTokenService {
       accessToken,
     );
 
-    if (tokenInfo?.client.clientId != clientId) {
+    if (tokenInfo && tokenInfo.client.clientId != clientId) {
       throw new UnauthorizedException();
     }
 
@@ -151,7 +159,7 @@ export class IntrospectTokenService {
       refreshToken,
     );
 
-    if (tokenInfo?.client.clientId != clientId) {
+    if (tokenInfo && tokenInfo.client.clientId != clientId) {
       throw new UnauthorizedException();
     }
 

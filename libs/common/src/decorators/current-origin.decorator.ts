@@ -4,9 +4,10 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { TokenInfo } from '../types/token-info.interface';
 
-const getCurrentTokenInfoByContext = (context: ExecutionContext): TokenInfo => {
+const getCurrentOriginByContext = (
+  context: ExecutionContext,
+): string | null => {
   const type: string = context.getType();
 
   let req: any;
@@ -16,14 +17,14 @@ const getCurrentTokenInfoByContext = (context: ExecutionContext): TokenInfo => {
     req = GqlExecutionContext.create(context).getContext().req;
   } else {
     throw new InternalServerErrorException(
-      `CurrentTokenInfo: Unsupported context type: ${type}`,
+      `CurrentOrigin: Unsupported context type: ${type}`,
     );
   }
 
-  return req.auth;
+  return req.header.origin;
 };
 
-export const CurrentTokenInfo = createParamDecorator(
+export const CurrentOrigin = createParamDecorator(
   (_data: unknown, context: ExecutionContext) =>
-    getCurrentTokenInfoByContext(context),
+    getCurrentOriginByContext(context),
 );

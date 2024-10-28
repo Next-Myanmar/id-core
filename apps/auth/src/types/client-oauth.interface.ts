@@ -5,5 +5,7 @@ export interface ClientOauth {
 
   clientId: string;
 
+  homeUri: string;
+
   grants: Grant[];
 }

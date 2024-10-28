@@ -1,4 +1,4 @@
-import { Public, UrlEncodedGuard } from '@app/common';
+import { CurrentOrigin, Public, UrlEncodedGuard } from '@app/common';
 import {
   Body,
   Controller,
@@ -7,7 +7,6 @@ import {
   Logger,
   Post,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { RevokeTokenDto } from '../dto/revoke-token.dto';
 import { IntrospectTokenService } from '../services/introspect-token.service';
@@ -29,10 +28,14 @@ export class IntrospectTokenController {
   @Public()
   async introspect(
     @Body() introspectDto: RevokeTokenDto,
+    @CurrentOrigin() origin: string | null,
   ): Promise<IntrospectResponse> {
     this.logger.log('Introspect Token Start');
 
-    const result = await this.introspectTokenService.introspect(introspectDto);
+    const result = await this.introspectTokenService.introspect(
+      introspectDto,
+      origin,
+    );
 
     this.logger.log('Introspect Token End');
 

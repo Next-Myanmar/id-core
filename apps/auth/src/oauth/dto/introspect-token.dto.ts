@@ -1,6 +1,5 @@
 import { i18nValidationMessage } from '@app/common';
-import { Optional } from '@nestjs/common';
-import { IsEnum, IsNotEmpty } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
 import { TokenTypeHint } from '../enums/token-type-hint.enum';
 
 export class IntrospectTokenDto {
@@ -12,7 +11,7 @@ export class IntrospectTokenDto {
   })
   token: string;
 
-  @Optional()
+  @IsOptional()
   @IsEnum(TokenTypeHint, {
     message: i18nValidationMessage({
       property: 'property.token_type_hint',

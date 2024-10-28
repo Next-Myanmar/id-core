@@ -1,5 +1,6 @@
 import {
   compareHash,
+  CorsDeniedException,
   I18nValidationException,
   i18nValidationMessage,
   UserAgentDetails,
@@ -24,6 +25,7 @@ export class TokenService {
 
   async token(
     userAgentDetails: UserAgentDetails,
+    origin: string | null,
     generateTokenPairDto: TokenDto,
   ): Promise<TokenPairResponse> {
     this.logger.log(`Grant Type: ${generateTokenPairDto.grant_type}`);
@@ -32,6 +34,7 @@ export class TokenService {
       generateTokenPairDto.client_id,
       generateTokenPairDto.client_secret,
       generateTokenPairDto.grant_type,
+      origin,
     );
 
     if (generateTokenPairDto.grant_type === Grant.AuthorizationCode) {
@@ -57,6 +60,7 @@ export class TokenService {
     clientId: string,
     clientSecret: string,
     grantType: Grant,
+    origin: string | null,
   ): Promise<ClientOauth> {
     const client = await this.prisma.clientOauth.findUnique({
       where: {
@@ -102,6 +106,10 @@ export class TokenService {
           message: 'validation.INVALID',
         }),
       });
+    }
+
+    if (origin && origin !== client.homeUri) {
+      throw new CorsDeniedException(origin, client.clientId);
     }
 
     return client;
