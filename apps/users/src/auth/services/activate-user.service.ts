@@ -47,30 +47,30 @@ export class ActivateUserService {
       activateUserDto.code,
     );
 
+    const accessLifetimeKey = AccessTokenLifetimeKeys[TokenType.Normal];
+    const refreshLifetimeKey = RefreshTokenLifetimeKeys[TokenType.Normal];
+
+    const accessTokenLifetime = Number(
+      this.config.getOrThrow<number>(accessLifetimeKey),
+    );
+    const refreshTokenLifetime = Number(
+      this.config.getOrThrow<number>(refreshLifetimeKey),
+    );
+
+    const tokenPair = await this.authUsers.generateTokenPair({
+      userId: authUser.userId,
+      deviceId: authUser.deviceId,
+      ua: userAgentDetails.ua,
+      tokenType: TokenType.Normal,
+      accessTokenLifetime: accessTokenLifetime,
+      refreshTokenLifetime: refreshTokenLifetime,
+    });
+
     const result = await this.verification.transaction(async () => {
       return await this.prisma.transaction(async (prisma) => {
         await this.verification.delete(key);
 
         const user = await this.updateUserToVerified(prisma, authUser);
-
-        const accessLifetimeKey = AccessTokenLifetimeKeys[TokenType.Normal];
-        const refreshLifetimeKey = RefreshTokenLifetimeKeys[TokenType.Normal];
-
-        const accessTokenLifetime = Number(
-          this.config.getOrThrow<number>(accessLifetimeKey),
-        );
-        const refreshTokenLifetime = Number(
-          this.config.getOrThrow<number>(refreshLifetimeKey),
-        );
-
-        const tokenPair = await this.authUsers.generateTokenPair({
-          userId: authUser.userId,
-          deviceId: authUser.deviceId,
-          ua: userAgentDetails.ua,
-          tokenType: TokenType.Normal,
-          accessTokenLifetime: accessTokenLifetime,
-          refreshTokenLifetime: refreshTokenLifetime,
-        });
 
         const data: SendWelcomeUserEmailDto = {
           recipient: user.email,

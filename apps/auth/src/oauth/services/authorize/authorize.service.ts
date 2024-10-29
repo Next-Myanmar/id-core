@@ -104,6 +104,7 @@ export class AuthorizeService {
       return await this.codeService.handleCode(
         client,
         usersTokenInfo.authInfo.userId,
+        usersTokenInfo.authInfo.deviceId,
         oauthUser,
         authorizeDto.redirect_uri,
         authorizeDto.scope,

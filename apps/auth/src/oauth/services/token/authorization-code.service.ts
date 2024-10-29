@@ -22,6 +22,7 @@ import { ScopeHelper } from '../../enums/scope.enum';
 import { AuthorizationCodeInfo } from '../../types/authorization-code-info.interface';
 import { TokenPairResponse } from '../../types/token-pair-response.interface';
 import { base64urlencode } from '../../utils/base64';
+import { AuthorizeGeneratorService } from '../authorize-generator.service';
 
 @Injectable()
 export class AuthorizationCodeService {
@@ -31,6 +32,7 @@ export class AuthorizationCodeService {
     private readonly config: ConfigService,
     private readonly prisma: AuthPrismaService,
     private readonly tokenService: TokenGeneratorService,
+    private readonly authorizeService: AuthorizeGeneratorService,
     private readonly usersOauthService: UsersOauthService,
   ) {}
 
@@ -67,63 +69,64 @@ export class AuthorizationCodeService {
     });
 
     const result = await this.tokenService.transaction(async () => {
-      return await this.prisma.transaction(async (prisma) => {
-        await this.tokenService.revokeKeysInfo(
-          AuthType.Oauth,
-          authorizationCodeInfo.client,
-          authorizationCodeInfo.authInfo,
-        );
+      return await this.authorizeService.transaction(async () => {
+        return await this.prisma.transaction(async (prisma) => {
+          await this.authorizeService.revokeKeysInfo(
+            authorizationCodeInfo.client,
+            authorizationCodeInfo.authInfo,
+          );
 
-        const device = await prisma.device.create({
-          data: {
-            clientOauthId: authorizationCodeInfo.client.id,
-            userId: authorizationCodeInfo.authInfo.oauthUserId,
-            ua: userAgentDetails.ua,
-          },
+          const device = await prisma.device.create({
+            data: {
+              clientOauthId: authorizationCodeInfo.client.id,
+              userId: authorizationCodeInfo.authInfo.oauthUserId,
+              ua: userAgentDetails.ua,
+            },
+          });
+
+          const leeway = Number(this.config.getOrThrow('TOKEN_LEAKWAY'));
+
+          const accessTokenLifetime = Number(
+            this.config.getOrThrow('OAUTH_ACCESS_TOKEN_LIFETIME'),
+          );
+
+          const refreshTokenLifetime = Number(
+            this.config.getOrThrow('OAUTH_REFRESH_TOKEN_LIFETIME'),
+          );
+
+          const newClientInfo: ClientOauth = {
+            id: client.id,
+            clientId: client.clientId,
+            homeUri: client.homeUri,
+            grants: client.grants.map((grant) =>
+              GrantHelper.convertToGrant(grant),
+            ),
+          };
+
+          const newAuthInfo: AuthOauthInfo = {
+            userId: authorizationCodeInfo.authInfo.userId,
+            oauthUserId: authorizationCodeInfo.authInfo.oauthUserId,
+            deviceId: device.id,
+            userAgentId: userAgentDetails.id,
+            scopes: authorizationCodeInfo.authInfo.scopes,
+            profile,
+          };
+
+          const tokenInfo = await this.tokenService.saveToken(
+            AuthType.Oauth,
+            newClientInfo,
+            newAuthInfo,
+            accessTokenLifetime,
+            refreshTokenLifetime,
+            leeway,
+          );
+
+          return {
+            access_token: tokenInfo.accessToken,
+            refresh_token: tokenInfo.refreshToken,
+            expires_in: accessTokenLifetime,
+          };
         });
-
-        const leeway = Number(this.config.getOrThrow('TOKEN_LEAKWAY'));
-
-        const accessTokenLifetime = Number(
-          this.config.getOrThrow('OAUTH_ACCESS_TOKEN_LIFETIME'),
-        );
-
-        const refreshTokenLifetime = Number(
-          this.config.getOrThrow('OAUTH_REFRESH_TOKEN_LIFETIME'),
-        );
-
-        const newClientInfo: ClientOauth = {
-          id: client.id,
-          clientId: client.clientId,
-          homeUri: client.homeUri,
-          grants: client.grants.map((grant) =>
-            GrantHelper.convertToGrant(grant),
-          ),
-        };
-
-        const newAuthInfo: AuthOauthInfo = {
-          userId: authorizationCodeInfo.authInfo.userId,
-          oauthUserId: authorizationCodeInfo.authInfo.oauthUserId,
-          deviceId: device.id,
-          userAgentId: userAgentDetails.id,
-          scopes: authorizationCodeInfo.authInfo.scopes,
-          profile,
-        };
-
-        const tokenInfo = await this.tokenService.saveToken(
-          AuthType.Oauth,
-          newClientInfo,
-          newAuthInfo,
-          accessTokenLifetime,
-          refreshTokenLifetime,
-          leeway,
-        );
-
-        return {
-          access_token: tokenInfo.accessToken,
-          refresh_token: tokenInfo.refreshToken,
-          expires_in: accessTokenLifetime,
-        };
       });
     });
 
@@ -135,7 +138,7 @@ export class AuthorizationCodeService {
   private async getAuthorizationCodeInfo(
     generateTokenPairDto: TokenDto,
   ): Promise<AuthorizationCodeInfo> {
-    const codeInfo = await this.tokenService.getAuthorizationCode(
+    const codeInfo = await this.authorizeService.getAuthorizationCode(
       generateTokenPairDto.code,
     );
 

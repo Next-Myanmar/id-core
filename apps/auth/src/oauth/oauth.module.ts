@@ -21,6 +21,7 @@ import { RevokeTokenService } from './services/revoke-token.service';
 import { AuthorizationCodeService } from './services/token/authorization-code.service';
 import { RefreshTokenService } from './services/token/refresh-token.service';
 import { TokenService } from './services/token/token.service';
+import { AuthorizeGeneratorService } from './services/authorize-generator.service';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { TokenService } from './services/token/token.service';
   ],
   providers: [
     TokenGeneratorService,
+    AuthorizeGeneratorService,
     CorsService,
     TokenService,
     CodeService,

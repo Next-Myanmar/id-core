@@ -4,13 +4,11 @@ import * as crypto from 'crypto';
 import { promisify } from 'util';
 import { AuthType } from '../enums/auth-type.enum';
 import { Grant } from '../enums/grant.enum';
-import { CodeChallengeMethod } from '../oauth/enums/code-challenge-method.enum';
-import { AuthorizationCodeInfo } from '../oauth/types/authorization-code-info.interface';
-import { TOKEN_REDIS_PROVIDER } from '../redis/token-redis.module';
+import { AUTH_REDIS_PROVIDER } from '../redis/auth-redis.module';
 import { AuthOauthInfo } from '../types/auth-oauth-info.interface';
 import { ClientOauth } from '../types/client-oauth.interface';
-import { KeysInfo } from '../types/keys-info';
 import { TokenInfo } from '../types/token-info.interface';
+import { TokenKeysInfo } from '../types/token-keys-info';
 import { AuthUsersInfo } from '../types/users-auth-info.interface';
 import { getTimestamp } from '../utils/utils';
 
@@ -19,8 +17,8 @@ export class TokenGeneratorService {
   private readonly logger = new Logger(TokenGeneratorService.name);
 
   constructor(
-    @Inject(TOKEN_REDIS_PROVIDER)
-    private readonly tokenRedis: RedisService,
+    @Inject(AUTH_REDIS_PROVIDER)
+    private readonly authRedis: RedisService,
   ) {}
 
   async generateRandomToken(): Promise<string> {
@@ -35,7 +33,7 @@ export class TokenGeneratorService {
     userId: string,
     deviceId: string,
   ): string {
-    const key = `auth-type-client-user-device-${authType}-${clientId}-${userId}-${deviceId}`;
+    const key = `token-auth-type-client-user-device-${authType}-${clientId}-${userId}-${deviceId}`;
     this.logger.debug(`Keys Info Key: ${key}`);
     return key;
   }
@@ -52,14 +50,8 @@ export class TokenGeneratorService {
     return key;
   }
 
-  getAuthorizationCodeKey(authorizationCode: string): string {
-    const key = `auth-type-authorization-code-${AuthType.Oauth}-${authorizationCode}`;
-    this.logger.debug(`Authorization Code Key: ${key}`);
-    return key;
-  }
-
   async transaction<T>(callback: () => Promise<T>): Promise<T> {
-    const result = await this.tokenRedis.transaction(async () => {
+    const result = await this.authRedis.transaction(async () => {
       return await callback();
     });
 
@@ -71,7 +63,7 @@ export class TokenGeneratorService {
     client: ClientOauth,
     authInfo: AuthUsersInfo | AuthOauthInfo,
     lifetime: number,
-    keysInfo: KeysInfo,
+    keysInfo: TokenKeysInfo,
   ): Promise<void> {
     this.logger.debug('saveKeysInfo Start');
 
@@ -82,11 +74,7 @@ export class TokenGeneratorService {
       authInfo.deviceId,
     );
 
-    await this.tokenRedis.setWithExpire(
-      key,
-      JSON.stringify(keysInfo),
-      lifetime,
-    );
+    await this.authRedis.setWithExpire(key, JSON.stringify(keysInfo), lifetime);
 
     this.logger.debug(
       `Keys Info: ${JSON.stringify(keysInfo)}, lifetime: ${lifetime}`,
@@ -99,7 +87,7 @@ export class TokenGeneratorService {
     authType: AuthType,
     client: ClientOauth,
     authInfo: AuthUsersInfo | AuthOauthInfo,
-    updateKeysInfo: KeysInfo,
+    updateKeysInfo: TokenKeysInfo,
   ): Promise<void> {
     this.logger.debug('updateKeysInfo Start');
 
@@ -110,7 +98,7 @@ export class TokenGeneratorService {
       authInfo.deviceId,
     );
 
-    await this.tokenRedis.update(key, JSON.stringify(updateKeysInfo));
+    await this.authRedis.update(key, JSON.stringify(updateKeysInfo));
 
     this.logger.debug(`Updated Keys Info: ${JSON.stringify(updateKeysInfo)}`);
 
@@ -121,7 +109,7 @@ export class TokenGeneratorService {
     authType: AuthType,
     client: ClientOauth,
     authInfo: AuthUsersInfo | AuthOauthInfo,
-  ): Promise<KeysInfo | undefined> {
+  ): Promise<TokenKeysInfo | undefined> {
     this.logger.debug('getKeysInfo Start');
 
     const key = this.getKeysInfoKey(
@@ -131,8 +119,8 @@ export class TokenGeneratorService {
       authInfo.deviceId,
     );
 
-    const value = await this.tokenRedis.get(key);
-    let data: KeysInfo;
+    const value = await this.authRedis.get(key);
+    let data: TokenKeysInfo;
 
     this.logger.debug(`Result: ${value}`);
 
@@ -148,31 +136,24 @@ export class TokenGeneratorService {
   async revokeKeysInfoByKey(key: string): Promise<void> {
     this.logger.debug('revokeKeysInfoByKey Start');
 
-    const value = await this.tokenRedis.get(key);
+    const value = await this.authRedis.get(key);
 
     this.logger.debug(`Keys Info: ${value}`);
 
     if (value) {
-      const data: KeysInfo = JSON.parse(value);
-
-      if (data.authorizationCodeKey) {
-        await this.tokenRedis.delete(data.authorizationCodeKey);
-        this.logger.debug(
-          `Deleted authorizationCodeKey: ${data.authorizationCodeKey}`,
-        );
-      }
+      const data: TokenKeysInfo = JSON.parse(value);
 
       if (data.accessTokenKey) {
-        await this.tokenRedis.delete(data.accessTokenKey);
+        await this.authRedis.delete(data.accessTokenKey);
         this.logger.debug(`Deleted accessTokenKey: ${data.accessTokenKey}`);
       }
 
       if (data.refreshTokenKey) {
-        await this.tokenRedis.delete(data.refreshTokenKey);
+        await this.authRedis.delete(data.refreshTokenKey);
         this.logger.debug(`Deleted refreshTokenKey: ${data.refreshTokenKey}`);
       }
 
-      await this.tokenRedis.delete(key);
+      await this.authRedis.delete(key);
     }
     this.logger.debug('revokeKeysInfoByKey End');
   }
@@ -223,13 +204,13 @@ export class TokenGeneratorService {
 
     const accessTokenKey = this.getAccessTokenKey(authType, accessToken);
 
-    await this.tokenRedis.setWithExpire(
+    await this.authRedis.setWithExpire(
       accessTokenKey,
       JSON.stringify(tokenInfo),
       accessTokenLifetime + leeway,
     );
 
-    let keysInfo: KeysInfo = { accessTokenKey };
+    let keysInfo: TokenKeysInfo = { accessTokenKey };
     let lifetime = accessTokenLifetime + leeway;
 
     if (client.grants.includes(Grant.RefreshToken)) {
@@ -243,7 +224,7 @@ export class TokenGeneratorService {
       tokenInfo.refreshTokenLifetime = refreshTokenLifetime;
       tokenInfo.refreshTokenExpiresAt = refreshTokenExpiresAt;
 
-      await this.tokenRedis.setWithExpire(
+      await this.authRedis.setWithExpire(
         refreshTokenKey,
         JSON.stringify(tokenInfo),
         refreshTokenLifetime + leeway,
@@ -270,7 +251,7 @@ export class TokenGeneratorService {
 
     const key = this.getAccessTokenKey(authType, accessToken);
 
-    const value = await this.tokenRedis.get(key);
+    const value = await this.authRedis.get(key);
     let data: TokenInfo;
 
     this.logger.debug(`Result: ${value}`);
@@ -294,7 +275,7 @@ export class TokenGeneratorService {
 
     const key = this.getRefreshTokenKey(authType, refreshToken);
 
-    const value = await this.tokenRedis.get(key);
+    const value = await this.authRedis.get(key);
 
     this.logger.debug(`Result: ${value}`);
 
@@ -317,7 +298,7 @@ export class TokenGeneratorService {
 
     const accessTokenKey = this.getAccessTokenKey(authType, accessToken);
 
-    await this.tokenRedis.delete(accessTokenKey);
+    await this.authRedis.delete(accessTokenKey);
     this.logger.debug(`Deleted accessTokenKey: ${accessTokenKey}`);
 
     this.logger.debug('revokeAccessToken End');
@@ -331,88 +312,16 @@ export class TokenGeneratorService {
 
     const refreshTokenKey = this.getRefreshTokenKey(authType, refrshToken);
 
-    await this.tokenRedis.delete(refreshTokenKey);
+    await this.authRedis.delete(refreshTokenKey);
     this.logger.debug(`Deleted refreshToken: ${refreshTokenKey}`);
 
     this.logger.debug('revokeRefreshToken End');
   }
 
-  async saveAuthorizationCode(
-    client: ClientOauth,
-    authInfo: AuthOauthInfo,
-    redirectUri: string,
-    authorizationCodeLifetime: number,
-    codeChallenge: string,
-    codeChallengeMethod: CodeChallengeMethod,
-  ): Promise<AuthorizationCodeInfo> {
-    this.logger.debug('saveAuthorizationCode Start');
-
-    const code = await this.generateRandomToken();
-
-    this.logger.debug(`Authorization Code: ${JSON.stringify(code)}`);
-
-    await this.revokeKeysInfo(AuthType.Oauth, client, authInfo);
-
-    const authorizationCodeKey = this.getAuthorizationCodeKey(code);
-
-    const data: AuthorizationCodeInfo = {
-      code,
-      redirectUri,
-      client,
-      authInfo,
-      codeChallenge,
-      codeChallengeMethod,
-    };
-
-    await this.tokenRedis.setWithExpire(
-      authorizationCodeKey,
-      JSON.stringify(data),
-      authorizationCodeLifetime,
-    );
-
-    await this.saveKeysInfo(
-      AuthType.Oauth,
-      client,
-      authInfo,
-      authorizationCodeLifetime,
-      {
-        authorizationCodeKey,
-      },
-    );
-
-    this.logger.debug('saveAuthorizationCode End');
-
-    return data;
-  }
-
-  async getAuthorizationCode(
-    authorizationCode: string,
-  ): Promise<AuthorizationCodeInfo> {
-    this.logger.debug('getAuthorizationCode Start');
-
-    this.logger.debug(`Authorization Code: ${authorizationCode}`);
-
-    const key = this.getAuthorizationCodeKey(authorizationCode);
-
-    const value = await this.tokenRedis.get(key);
-
-    this.logger.debug(`Result: ${value}`);
-
-    let data: AuthorizationCodeInfo;
-
-    if (value) {
-      data = JSON.parse(value, dateReviver);
-    }
-
-    this.logger.debug('getAuthorizationCode End');
-
-    return data;
-  }
-
   async checkAvailableKeysInfos(checkData: CheckData): Promise<CheckData> {
     const keys = Object.keys(checkData);
 
-    const data = await this.tokenRedis.mget(...keys);
+    const data = await this.authRedis.mget(...keys);
     const availableData = data.reduce((acc, value, index) => {
       if (value !== null) {
         const key = keys[index];
@@ -425,7 +334,7 @@ export class TokenGeneratorService {
   }
 
   async ttl(key: string): Promise<number> {
-    return await this.tokenRedis.ttl(key);
+    return await this.authRedis.ttl(key);
   }
 }
 

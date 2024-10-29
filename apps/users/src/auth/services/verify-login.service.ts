@@ -33,27 +33,27 @@ export class VerifyLoginService {
       verifyLoginDto.code,
     );
 
+    const accessLifetimeKey = AccessTokenLifetimeKeys[TokenType.Normal];
+    const refreshLifetimeKey = RefreshTokenLifetimeKeys[TokenType.Normal];
+
+    const accessTokenLifetime = Number(
+      this.config.getOrThrow<number>(accessLifetimeKey),
+    );
+    const refreshTokenLifetime = Number(
+      this.config.getOrThrow<number>(refreshLifetimeKey),
+    );
+
+    const tokenPair = await this.authUsers.generateTokenPair({
+      userId: authUser.userId,
+      deviceId: authUser.deviceId,
+      ua: userAgentDetails.ua,
+      tokenType: TokenType.Normal,
+      accessTokenLifetime,
+      refreshTokenLifetime,
+    });
+
     const result = await this.verification.transaction(async () => {
       await this.verification.delete(key);
-
-      const accessLifetimeKey = AccessTokenLifetimeKeys[TokenType.Normal];
-      const refreshLifetimeKey = RefreshTokenLifetimeKeys[TokenType.Normal];
-
-      const accessTokenLifetime = Number(
-        this.config.getOrThrow<number>(accessLifetimeKey),
-      );
-      const refreshTokenLifetime = Number(
-        this.config.getOrThrow<number>(refreshLifetimeKey),
-      );
-
-      const tokenPair = await this.authUsers.generateTokenPair({
-        userId: authUser.userId,
-        deviceId: authUser.deviceId,
-        ua: userAgentDetails.ua,
-        tokenType: TokenType.Normal,
-        accessTokenLifetime,
-        refreshTokenLifetime,
-      });
 
       return {
         accessToken: tokenPair.accessToken,

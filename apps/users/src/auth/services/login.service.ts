@@ -42,26 +42,25 @@ export class LoginService {
   ): Promise<TokenPairResponse> {
     const user = await this.getUser(loginDto);
 
+    const accessLifetimeKey = AccessTokenLifetimeKeys[TokenType.VerifyLogin];
+    const refreshLifetimeKey = RefreshTokenLifetimeKeys[TokenType.VerifyLogin];
+
+    const accessTokenLifetime = Number(
+      this.config.getOrThrow<number>(accessLifetimeKey),
+    );
+    const refreshTokenLifetime = Number(
+      this.config.getOrThrow<number>(refreshLifetimeKey),
+    );
+
+    const tokenPair = await this.authUsers.generateTokenPair({
+      userId: user.id,
+      ua: userAgentDetails.ua,
+      tokenType: TokenType.VerifyLogin,
+      accessTokenLifetime,
+      refreshTokenLifetime,
+    });
+
     const result = await this.verification.transaction(async () => {
-      const accessLifetimeKey = AccessTokenLifetimeKeys[TokenType.VerifyLogin];
-      const refreshLifetimeKey =
-        RefreshTokenLifetimeKeys[TokenType.VerifyLogin];
-
-      const accessTokenLifetime = Number(
-        this.config.getOrThrow<number>(accessLifetimeKey),
-      );
-      const refreshTokenLifetime = Number(
-        this.config.getOrThrow<number>(refreshLifetimeKey),
-      );
-
-      const tokenPair = await this.authUsers.generateTokenPair({
-        userId: user.id,
-        ua: userAgentDetails.ua,
-        tokenType: TokenType.VerifyLogin,
-        accessTokenLifetime,
-        refreshTokenLifetime,
-      });
-
       const loginCode = await this.verification.createVerificationCode(
         user.id,
         tokenPair.deviceId,

@@ -36,25 +36,6 @@ export class AuthorizeDto {
   })
   redirect_uri: string;
 
-  @ValidateIf((o) => o.response_type === ResponseType.code)
-  @IsNotEmpty({
-    message: i18nValidationMessage({
-      property: 'property.code_challenge',
-      message: 'validation.NOT_EMPTY',
-    }),
-  })
-  code_challenge: string;
-
-  @ValidateIf((o) => o.response_type === ResponseType.code)
-  @IsEnum(CodeChallengeMethod, {
-    message: i18nValidationMessage({
-      property: 'property.code_challenge_method',
-      message: 'validation.INVALID',
-    }),
-  })
-  code_challenge_method: CodeChallengeMethod;
-
-  @ValidateIf((o) => o.response_type === ResponseType.code)
   @Transform(({ value }) =>
     value ? value.split(' ').map((scope: Scope) => scope as Scope) : [],
   )
@@ -78,4 +59,22 @@ export class AuthorizeDto {
     }),
   })
   scope: Scope[];
+
+  @ValidateIf((o) => o.response_type === ResponseType.code)
+  @IsNotEmpty({
+    message: i18nValidationMessage({
+      property: 'property.code_challenge',
+      message: 'validation.NOT_EMPTY',
+    }),
+  })
+  code_challenge: string;
+
+  @ValidateIf((o) => o.response_type === ResponseType.code)
+  @IsEnum(CodeChallengeMethod, {
+    message: i18nValidationMessage({
+      property: 'property.code_challenge_method',
+      message: 'validation.INVALID',
+    }),
+  })
+  code_challenge_method: CodeChallengeMethod;
 }

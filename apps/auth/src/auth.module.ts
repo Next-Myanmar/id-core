@@ -15,8 +15,8 @@ import { GrpcMetadataResolver } from 'nestjs-i18n';
 import { DevicesModule } from './devices/devices.module';
 import { AuthGuard } from './guards/auth.guard';
 import { OauthModule } from './oauth/oauth.module';
+import { AuthRedisModule } from './redis/auth-redis.module';
 import { CorsRedisModule } from './redis/cors-redis.module';
-import { TokenRedisModule } from './redis/token-redis.module';
 import { TokenGeneratorService } from './services/token-generator.service';
 import { UsersModule } from './users/users.module';
 
@@ -40,7 +40,7 @@ import { UsersModule } from './users/users.module';
       name: 'auth',
       envFilePath: './apps/auth/.env',
     }),
-    TokenRedisModule,
+    AuthRedisModule,
     CorsRedisModule,
     HealthModule,
     AuthPrismaModule,
